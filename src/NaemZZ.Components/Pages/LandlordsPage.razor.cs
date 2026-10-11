@@ -289,32 +289,52 @@ public partial class LandlordsPage : BaseDomComponent
     private async Task DeleteLandlord()
     {
         if (_current is null)
-        {
             return;
-        }
 
         var confirm = await DialogService.ShowMessageBox(
             L["Потвърждение"].ToString(),
             L["Наистина ли искате да изтриете този запис?"].ToString(),
             yesText: L["Изтрий"].ToString(),
             cancelText: L["Откажи"].ToString(),
-            options: new DialogOptions { MaxWidth = "sm", CloseButton = true, TransitionEnter = AnimateBook.ZoomEntrances.ZoomIn.Build() });
+            options: new DialogOptions
+            {
+                MaxWidth = "sm",
+                CloseButton = true,
+                TransitionEnter = AnimateBook.ZoomEntrances.ZoomIn.Build()
+            });
+
         if (confirm != true)
-        {
             return;
-        }
 
         try
         {
             var deletedId = _current.ID;
+
+            // Remember the position before deletion.
+            var index = _landlords
+                .Select((item, i) => (item, i))
+                .FirstOrDefault(x => x.item.ID == deletedId).i;
+
             await Service.DeleteAsync(deletedId);
+
             ++_selectionVersion;
             _current = null;
             _editor.Clear();
-            _landlords = _landlords.Where(x => x.ID != deletedId).ToArray();
             _selectedLandlordId = null;
             _isPropertyEditMode = false;
             _propertyBackup = null;
+
+            _landlords = _landlords
+                .Where(x => x.ID != deletedId)
+                .ToArray();
+
+            // Select next, or previous if the last item was deleted.
+            if (_landlords.Count > 0)
+            {
+                index = Math.Min(index, _landlords.Count - 1);
+                await Select(_landlords[index]);
+            }
+
             await NotificationService.Success("Наемодателят е изтрит.");
         }
         catch (Exception ex)
