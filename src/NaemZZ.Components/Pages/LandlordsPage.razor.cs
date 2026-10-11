@@ -1,4 +1,4 @@
-using AutoMapper;
+﻿using AutoMapper;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Components;
 using Microsoft.Extensions.DependencyInjection;
@@ -66,6 +66,7 @@ public partial class LandlordsPage : BaseDomComponent
     private bool _isLoadingLandlord;
     private int _selectionVersion;
     private IReadOnlyList<Company> _firms = [];
+    private IReadOnlyList<ContractTemplate> _contractTemplates = [];
     private bool _isPropertyEditMode;
     private List<PropertyDto>? _propertyBackup;
     private PropertyDto? _propertyClipboard;
@@ -100,6 +101,7 @@ public partial class LandlordsPage : BaseDomComponent
             .DisposeWith(this);
         
         _firms = await Lookups.GetFirmsAsync();
+        _contractTemplates = await FirmManagement.ListTemplatesAsync();
         _categories = await Lookups.GetCategoriesAsync();
         _regions = await Lookups.GetRegionsAsync();
         
@@ -438,18 +440,20 @@ public partial class LandlordsPage : BaseDomComponent
     private async Task<bool> SaveCurrentAsync()
     {
         if (IsProcessing.Value || _current is null)
-        {
             return false;
-        }
 
         using var processing = SetProcessing();
+
         _showValidation = true;
         await InvokeAsync(StateHasChanged);
         await Task.Yield();
+
         try
         {
             var current = _current;
-            if (current.ID == 0)
+            var isNew = current.ID == 0;
+
+            if (isNew)
             {
                 await Service.CreateAsync(current);
             }
@@ -463,7 +467,24 @@ public partial class LandlordsPage : BaseDomComponent
             _propertyBackup = null;
             _isPropertyEditMode = false;
             _editor.MarkSaved();
+
             _landlords = await Service.GetListAsync(SearchFilter.Value);
+
+            if (isNew)
+            {
+                // Ensure the new record is visible even if the search filter excludes it.
+                if (_landlords.All(x => x.ID != current.ID))
+                {
+                    SearchFilter.Value = string.Empty;
+                    _landlords = await Service.GetListAsync();
+                }
+
+                // Wait until the list has rendered.
+                await InvokeAsync(StateHasChanged);
+                await Task.Delay(1000);
+
+                await ScrollManager.ScrollIntoViewAsync($"#landlord-{current.ID}");
+            }
 
             MessageBroker.Publish(new RefreshEvent());
 

@@ -1,4 +1,4 @@
-using AutoMapper;
+﻿using AutoMapper;
 using Microsoft.EntityFrameworkCore;
 using NaemZZ.Core.Dto;
 using NaemZZ.Core.Entities;
@@ -75,7 +75,6 @@ public sealed class LandlordService(IDbContextFactory<NaemZZDbContext> factory, 
         return entity is null ? (0, 0, 0) : (entity.LandlordCount, entity.PropertyCount, entity.PropertyAmount.GetValueOrDefault());
     }
 
-
     public async Task<LandlordDto?> GetAsync(int id, CancellationToken ct = default)
     {
         await using var db = await factory.CreateDbContextAsync(ct);
@@ -88,7 +87,13 @@ public sealed class LandlordService(IDbContextFactory<NaemZZDbContext> factory, 
     public async Task<Landlord?> GetForContractAsync(int id, CancellationToken ct = default)
     {
         await using var db = await factory.CreateDbContextAsync(ct);
-        return await db.Landlords.AsNoTracking()
+
+        return await db.Landlords
+            .AsNoTracking()
+            .AsSplitQuery()
+            .Include(x => x.Region)
+            .Include(x => x.Municipality)
+            .Include(x => x.Settlement)
             .Include(x => x.IMOTIs).ThenInclude(x => x.PropertyCategory)
             .Include(x => x.IMOTIs).ThenInclude(x => x.Region)
             .Include(x => x.IMOTIs).ThenInclude(x => x.Municipality)
@@ -109,6 +114,8 @@ public sealed class LandlordService(IDbContextFactory<NaemZZDbContext> factory, 
         if (dto.ID != 0) throw new ArgumentException("Expected a new landlord.", nameof(dto));
         Validate(dto, mapper);
         await using var db = await factory.CreateDbContextAsync(ct);
+        if (dto.ContractTemplateId is int templateId && !await db.ContractTemplates.AnyAsync(x => x.Id == templateId, ct))
+            throw new ArgumentException("Невалиден шаблон за договор.");
         var entity = mapper.Map<Landlord>(dto);
         db.Landlords.Add(entity);
         var created = new List<Property>();
@@ -137,6 +144,8 @@ public sealed class LandlordService(IDbContextFactory<NaemZZDbContext> factory, 
         Validate(dto, mapper);
         await using var db = await factory.CreateDbContextAsync(ct);
         await using var transaction = await db.Database.BeginTransactionAsync(ct);
+        if (dto.ContractTemplateId is int templateId && !await db.ContractTemplates.AnyAsync(x => x.Id == templateId, ct))
+            throw new ArgumentException("Невалиден шаблон за договор.");
         var entity = await db.Landlords.SingleAsync(x => x.ID == dto.ID, ct);
         mapper.Map(dto, entity);
         var stored = await db.Properties.Where(x => x.LandlordId == dto.ID).ToListAsync(ct);

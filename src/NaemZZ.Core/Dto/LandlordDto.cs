@@ -1,4 +1,4 @@
-namespace NaemZZ.Core.Dto;
+﻿namespace NaemZZ.Core.Dto;
 
 public sealed class LandlordListDto
 {
@@ -32,11 +32,24 @@ public sealed class LandlordDto
     public DateTime? LKDATE { get; set; }
     public string? MVR { get; set; }
     public int? FIRM_ID { get; set; }
+    public int? ContractTemplateId { get; set; }
     public int? OBSTINA { get; set; }
     public int? OBLAST { get; set; }
     public string? Phone { get; set; }
     public List<PropertyDto> IMOTIs { get; set; } = [];
     public decimal GetTotal => IMOTIs.Sum(x => x.PLOST ?? 0m);
+
+    public string? GetFullName()
+    {
+        if (IsCompany)
+        {
+            return CompanyName;
+        }
+        else
+        {
+            return $"{NAME} {SURNAME} {LASTNAME}".Trim();
+        }
+    }
 }
 
 public sealed class PropertyDto

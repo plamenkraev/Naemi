@@ -1,4 +1,4 @@
-using AutoMapper;
+﻿using AutoMapper;
 using NaemZZ.Core.Entities;
 
 namespace NaemZZ.Core.Dto;
@@ -11,6 +11,7 @@ public sealed class CoreAutomaperProfile : Profile
         CreateMap<LandlordDto, Landlord>()
             .ForMember(d => d.IMOTIs, o => o.Ignore())
             .ForMember(d => d.Company, o => o.Ignore())
+            .ForMember(d => d.ContractTemplate, o => o.Ignore())
             .ForMember(d => d.Region, o => o.Ignore())
             .ForMember(d => d.Municipality, o => o.Ignore())
             .ForMember(d => d.Settlement, o => o.Ignore());

@@ -1,4 +1,4 @@
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using NaemZZ.Core.Entities;
 using System.Reflection.Emit;
@@ -23,6 +23,11 @@ public class NaemodateliConfiguration : IEntityTypeConfiguration<Landlord>
         builder.Property(n => n.LK).HasMaxLength(15);
         builder.Property(n => n.MVR).HasMaxLength(25);
         builder.Property(n => n.Phone).HasMaxLength(20);
+
+        builder.HasOne(n => n.ContractTemplate)
+            .WithMany(t => t.Landlords)
+            .HasForeignKey(n => n.ContractTemplateId)
+            .OnDelete(DeleteBehavior.SetNull);
 
         builder.HasOne(n => n.Company)
             .WithMany(f => f.NAEMODATELIs)

@@ -1,4 +1,4 @@
-using NaemZZ.Core.Contracts;
+﻿using NaemZZ.Core.Contracts;
 using NaemZZ.Core.Entities;
 using NaemZZ.Core.Interfaces;
 using System.IO;
@@ -14,7 +14,8 @@ public sealed class ContractDocumentService(IFirmManagementService firms) : ICon
         var firm = allFirms.FirstOrDefault(x => x.Id == landlord.FIRM_ID)
             ?? throw new InvalidOperationException("Моля, изберете фирма за наемодателя.");
         var templates = await firms.ListTemplatesAsync(cancellationToken);
-        var template = templates.FirstOrDefault(x => x.Id == firm.ContractTemplateId);
+        var selectedTemplateId = landlord.ContractTemplateId ?? firm.ContractTemplateId;
+        var template = templates.FirstOrDefault(x => x.Id == selectedTemplateId);
         if (template is null)
         {
             var legacyFile = firm.Id switch

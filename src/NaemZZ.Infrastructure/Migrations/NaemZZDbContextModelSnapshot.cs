@@ -109,6 +109,9 @@ namespace NaemZZ.Infrastructure.Migrations
                         .HasMaxLength(250)
                         .HasColumnType("TEXT");
 
+                    b.Property<int?>("ContractTemplateId")
+                        .HasColumnType("INTEGER");
+
                     b.Property<string>("EGN")
                         .HasMaxLength(15)
                         .HasColumnType("TEXT");
@@ -167,6 +170,8 @@ namespace NaemZZ.Infrastructure.Migrations
                     b.HasKey("ID");
 
                     b.HasIndex("CITY");
+
+                    b.HasIndex("ContractTemplateId");
 
                     b.HasIndex("FIRM_ID");
 
@@ -340,6 +345,11 @@ namespace NaemZZ.Infrastructure.Migrations
                         .HasForeignKey("CITY")
                         .OnDelete(DeleteBehavior.Restrict);
 
+                    b.HasOne("NaemZZ.Core.Entities.ContractTemplate", "ContractTemplate")
+                        .WithMany("Landlords")
+                        .HasForeignKey("ContractTemplateId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
                     b.HasOne("NaemZZ.Core.Entities.Company", "Company")
                         .WithMany("NAEMODATELIs")
                         .HasForeignKey("FIRM_ID")
@@ -356,6 +366,8 @@ namespace NaemZZ.Infrastructure.Migrations
                         .OnDelete(DeleteBehavior.Restrict);
 
                     b.Navigation("Company");
+
+                    b.Navigation("ContractTemplate");
 
                     b.Navigation("Municipality");
 
@@ -430,6 +442,8 @@ namespace NaemZZ.Infrastructure.Migrations
             modelBuilder.Entity("NaemZZ.Core.Entities.ContractTemplate", b =>
                 {
                     b.Navigation("Firms");
+
+                    b.Navigation("Landlords");
                 });
 
             modelBuilder.Entity("NaemZZ.Core.Entities.Landlord", b =>

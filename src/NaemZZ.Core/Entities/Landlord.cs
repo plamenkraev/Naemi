@@ -1,4 +1,4 @@
-namespace NaemZZ.Core.Entities;
+﻿namespace NaemZZ.Core.Entities;
 
 /// <summary>
 /// Landlord ("Наемодател"). Recreated from the legacy EFDAL "Landlord" entity
@@ -46,6 +46,10 @@ public class Landlord
     public int? OBLAST { get; set; }
 
     public string? Phone { get; set; }
+
+    /// <summary>Optional contract template override; null uses the selected company template.</summary>
+    public int? ContractTemplateId { get; set; }
+    public ContractTemplate? ContractTemplate { get; set; }
 
     public Company? Company { get; set; }
 

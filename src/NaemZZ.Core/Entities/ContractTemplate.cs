@@ -1,4 +1,4 @@
-namespace NaemZZ.Core.Entities;
+﻿namespace NaemZZ.Core.Entities;
 
 /// <summary>Editable HTML contract template. Original RTF files remain untouched.</summary>
 public class ContractTemplate
@@ -8,4 +8,5 @@ public class ContractTemplate
     public string Html { get; set; } = "";
     public string? LegacyRtfFile { get; set; }
     public ICollection<Company> Firms { get; set; } = new List<Company>();
+    public ICollection<Landlord> Landlords { get; set; } = new List<Landlord>();
 }

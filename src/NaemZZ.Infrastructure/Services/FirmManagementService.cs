@@ -1,4 +1,4 @@
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using AutoMapper;
 using NaemZZ.Core.Dto;
 using NaemZZ.Core.Entities;
@@ -107,6 +107,9 @@ public sealed class FirmManagementService(IDbContextFactory<NaemZZDbContext> fac
     {
         await using var db = await factory.CreateDbContextAsync(ct);
         await using var transaction = await db.Database.BeginTransactionAsync(ct);
+
+        await db.Landlords.Where(x => x.ContractTemplateId == id)
+            .ExecuteUpdateAsync(s => s.SetProperty(x => x.ContractTemplateId, (int?)null), ct);
 
         await db.Companies.Where(x => x.ContractTemplateId == id)
             .ExecuteUpdateAsync(s => s.SetProperty(x => x.ContractTemplateId, (int?)null), ct);

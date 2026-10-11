@@ -1,9 +1,9 @@
-using System.Globalization;
-using System.Net;
-using System.Text.RegularExpressions;
 using HtmlAgilityPack;
 using NaemZZ.Core.Dto;
 using NaemZZ.Core.Entities;
+using System.Globalization;
+using System.Net;
+using System.Text.RegularExpressions;
 
 namespace NaemZZ.Core.Contracts;
 
@@ -34,7 +34,7 @@ public static partial class ContractTemplateRenderer
             ["Landlord.DisplayName"] = landlord.IsCompany ? landlord.CompanyName : $"{landlord.NAME} {landlord.SURNAME} {landlord.LASTNAME}".Trim(),
             ["Landlord.FullName"] = $"{landlord.NAME} {landlord.SURNAME} {landlord.LASTNAME}".Trim(),
             ["Landlord.EGN"] = landlord.EGN,
-            ["Landlord.Address"] = landlord.STREET,
+            ["Landlord.Address"] = FormatLandlordAddress(landlord),
             ["Landlord.Phone"] = landlord.Phone,
             ["Landlord.IDCard"] = landlord.LK,
             ["Landlord.IDCardDate"] = landlord.LKDATE?.ToString("dd.MM.yyyy", bg),
@@ -43,7 +43,59 @@ public static partial class ContractTemplateRenderer
             ["Contract.Year"] = today.Year.ToString(CultureInfo.InvariantCulture)
         };
 
+        string FormatLandlordAddress(Landlord landlord)
+        {
+            var parts = new List<string>();
+
+            if (!string.IsNullOrWhiteSpace(landlord.Region?.NAME))
+                parts.Add($"обл. {landlord.Region.NAME}");
+
+            if (!string.IsNullOrWhiteSpace(landlord.Municipality?.NAME))
+                parts.Add($"общ. {landlord.Municipality.NAME}");
+
+            if (!string.IsNullOrWhiteSpace(landlord.Settlement?.NAME))
+            {
+                parts.Add($"{landlord.Settlement.T_V_M} {landlord.Settlement.NAME}".Trim());
+            }
+
+            if (!string.IsNullOrWhiteSpace(landlord.STREET))
+            {
+                parts.Add(landlord.STREET);
+            }
+
+            return string.Join(", ", parts);
+        }
+
         string PropertiesHtml() => string.Join("\n", landlord.IMOTIs.Select(p =>
+            {
+                var values = new Dictionary<string, string?>(StringComparer.OrdinalIgnoreCase)
+                {
+                    ["Number"] = p.NOMER,
+                    ["Area"] = p.PLOST?.ToString("N3", bg),
+                    ["Category"] = p.PropertyCategory?.NAME,
+                    ["Terrain"] = p.TERRAIN,
+                    ["Limits"] = p.LIMITS,
+                    ["Region"] = p.Region?.NAME,
+                    ["Municipality"] = p.Municipality?.NAME,
+                    ["Settlement"] = p.Settlement?.NAME,
+                    ["EkatteCode"] = p.Settlement?.EKATTE_CODE
+                };
+                return "<p class=\"contract-property\">" +
+                    "НИВА с площ от " + Enc(values["Area"]) + " дка, " +
+                    Enc(values["Category"]) + " категория, в землището на " +
+                    Enc(values["Settlement"]) + ", общ. " + Enc(values["Municipality"]) +
+                    ", обл. " + Enc(values["Region"]) + ", ЕКАТТЕ " +
+                    Enc(values["EkatteCode"]) + ", местност " + Enc(values["Terrain"]) +
+                   ", имот № " + Enc(values["Number"]) +
+                    (!string.IsNullOrWhiteSpace(values["Limits"])
+                        ? ", при граници: " + Enc(values["Limits"])
+                        : "") +
+                    ".</p>";
+            }));
+
+        // Expand legacy repeat blocks before HTML parsing. The repeat block is a
+        // template-language construct, not an HTML element.
+        html = PropertiesBlock().Replace(html, m => string.Concat(landlord.IMOTIs.Select(p =>
         {
             var values = new Dictionary<string, string?>(StringComparer.OrdinalIgnoreCase)
             {
@@ -55,31 +107,6 @@ public static partial class ContractTemplateRenderer
                 ["Region"] = p.Region?.NAME,
                 ["Municipality"] = p.Municipality?.NAME,
                 ["Settlement"] = p.Settlement?.NAME,
-                ["EkatteCode"] = p.Settlement?.EKATTE_CODE
-            };
-            return "<p class=\"contract-property\">" +
-                "НИВА с площ от " + Enc(values["Area"]) + " дка, " +
-                Enc(values["Category"]) + " категория, в землището на " +
-                Enc(values["Settlement"]) + ", общ. " + Enc(values["Municipality"]) +
-                ", обл. " + Enc(values["Region"]) + ", ЕКАТТЕ " +
-                Enc(values["EkatteCode"]) + ", местност " + Enc(values["Terrain"]) +
-               ", имот № " + Enc(values["Number"]) +
-                (!string.IsNullOrWhiteSpace(values["Limits"])
-                    ? ", при граници: " + Enc(values["Limits"])
-                    : "") +
-                ".</p>";
-        }));
-
-        // Expand legacy repeat blocks before HTML parsing. The repeat block is a
-        // template-language construct, not an HTML element.
-        html = PropertiesBlock().Replace(html, m => string.Concat(landlord.IMOTIs.Select(p =>
-        {
-            var values = new Dictionary<string, string?>(StringComparer.OrdinalIgnoreCase)
-            {
-                ["Number"] = p.NOMER, ["Area"] = p.PLOST?.ToString("N3", bg),
-                ["Category"] = p.PropertyCategory?.NAME, ["Terrain"] = p.TERRAIN,
-                ["Limits"] = p.LIMITS, ["Region"] = p.Region?.NAME,
-                ["Municipality"] = p.Municipality?.NAME, ["Settlement"] = p.Settlement?.NAME,
                 ["EkatteCode"] = p.Settlement?.EKATTE_CODE
             };
             return ReplaceFields(m.Groups[1].Value, values);
@@ -133,6 +160,7 @@ public static partial class ContractTemplateRenderer
     }
 
     private static string Enc(string? value) => WebUtility.HtmlEncode(value ?? "");
+
     private static string ReplaceFields(string source, IReadOnlyDictionary<string, string?> fields) =>
         Field().Replace(source, m => fields.TryGetValue(m.Groups[1].Value, out var value) ? Enc(value) : m.Value);
 }
