@@ -2,66 +2,70 @@
 @using NaemZZ.Core.Dto
 <Dialog>
     <ChildContent>
+        <TemplateForm Model="@Company">
+            <FluentValidationValidator @ref="fluentValidationValidatorRef" />
+            <ValidationFormSummary/>
 
-        <Fields class="flex flex-col gap-2">
-            <div class="flex justify-end">
-                <Button Size="ThemeSize.Small"
-                        Variant="Variant.Flat"
-                        OnClick="@(() => Company = new FirmDto())">
-                     @L["Нова фирма"]
-                </Button>
-            </div>
-            <Field>
-                <FieldLabel>
-                    @L["Име"]
-                </FieldLabel>
-                <FieldBody>
-                    <TextField Placeholder="Име" @bind-Value="Company.Name" />
-                </FieldBody>
-            </Field>
-            <Field>
-                <FieldLabel>
-                    @L["Адрес"]
-                </FieldLabel>
-                <FieldBody>
-                    <TextField Placeholder="Адрес" @bind-Value="Company.Address" />
-                </FieldBody>
-            </Field>
-            <Field>
-                <FieldLabel>
-                    @L["БУЛСТАТ"]
-                </FieldLabel>
-                <FieldBody>
-                    <TextField Placeholder="БУЛСТАТ" @bind-Value="Company.BULSTAT" />
-                </FieldBody>
-            </Field>
-            <Field>
-                <FieldLabel>
-                    @L["МОЛ"]
-                </FieldLabel>
-                <FieldBody>
-                    <TextField Placeholder="МОЛ" @bind-Value="Company.Representative" />
-                </FieldBody>
-            </Field>
-            <Field>
-                <FieldLabel>
-                    @L["Шаблон на договор"]
-                </FieldLabel>
-                <FieldBody>
-                    <Select Placeholder="@L["Избери шаблон"]"
-                            Items="@_templates"
-                            ValueField="@(x => x.Id)"
-                            TextField="@(x => (x?.Name ?? L["Не е избран"]))"
-                            @bind-Value="Company.ContractTemplateId" />
-                </FieldBody>
-            </Field>
+            <Fields class="flex flex-col gap-2">
+                <div class="flex justify-end">
+                    <Button Size="ThemeSize.Small"
+                            Variant="Variant.Flat"
+                            OnClick="@(() => Company = new FirmDto())">
+                        @L["Нова фирма"]
+                    </Button>
+                </div>
+                <Field>
+                    <FieldLabel>
+                        @L["Име"]
+                    </FieldLabel>
+                    <FieldBody>
+                        <TextField Placeholder="Име" @bind-Value="Company.Name" />
+                        <ValidationField For="@(() => Company.Name)" />
+                    </FieldBody>
+                </Field>
+                <Field>
+                    <FieldLabel>
+                        @L["Адрес"]
+                    </FieldLabel>
+                    <FieldBody>
+                        <TextField Placeholder="Адрес" @bind-Value="Company.Address" />
+                    </FieldBody>
+                </Field>
+                <Field>
+                    <FieldLabel>
+                        @L["БУЛСТАТ"]
+                    </FieldLabel>
+                    <FieldBody>
+                        <TextField Placeholder="БУЛСТАТ" @bind-Value="Company.BULSTAT" />
+                    </FieldBody>
+                </Field>
+                <Field>
+                    <FieldLabel>
+                        @L["МОЛ"]
+                    </FieldLabel>
+                    <FieldBody>
+                        <TextField Placeholder="МОЛ" @bind-Value="Company.Representative" />
+                    </FieldBody>
+                </Field>
+                <Field>
+                    <FieldLabel>
+                        @L["Шаблон на договор"]
+                    </FieldLabel>
+                    <FieldBody>
+                        <Select Placeholder="@L["Избери шаблон"]"
+                                Items="@_templates"
+                                ValueField="@(x => x.Id)"
+                                TextField="@(x => (x?.Name ?? L["Не е избран"]))"
+                                @bind-Value="Company.ContractTemplateId" />
+                    </FieldBody>
+                </Field>
 
-            <div class="flex justify-end gap-2">
-                <Button Variant="Variant.Flat" OnClick="@(DialogReference.CancelAsync)">Отказ</Button>
-                <Button Color="PaletteColor.Primary" OnClick="@Close">Запис</Button>
-            </div>
-        </Fields>
-
+                <div class="flex justify-end gap-2">
+                    <Button Variant="Variant.Flat" OnClick="@(DialogReference.CancelAsync)">Отказ</Button>
+                    <Button Color="PaletteColor.Primary" OnClick="@Close">Запис</Button>
+                </div>
+            </Fields>
+        </TemplateForm>
     </ChildContent>
 </Dialog>
 
@@ -72,6 +76,8 @@
 
     [Parameter] public FirmDto Company { get; set; } = null!;
 
+    FluentValidationValidator? fluentValidationValidatorRef;
+
     private IReadOnlyList<ContractTemplate> _templates = [];
 
     protected override async Task OnInitializedAsync()
@@ -81,6 +87,11 @@
 
     private async Task Close()
     {
+        if (!fluentValidationValidatorRef!.Validate())
+        {
+            return;
+        }
+
         await DialogReference.CloseAsync(Company);
     }
 
