@@ -36,6 +36,8 @@ Name: "desktopicon"; Description: "Създай икона на работния
 [Files]
 Source: "bin\Release\net10.0-windows10.0.17763.0\publish\win-x86\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
 
+Source: "Assets\brovis.ico"; DestDir: "{app}\Assets"; Flags: ignoreversion
+
 [Icons]
 Name: "{group}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; WorkingDir: "{app}"; IconFilename: "{app}\Assets\brovis.ico"
 
