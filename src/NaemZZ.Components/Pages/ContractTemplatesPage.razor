@@ -18,11 +18,14 @@
         <div class="flex flex-wrap gap-2">
             <Button Size="ThemeSize.Small" Variant="Variant.Solid" OnClick="@NewTemplate">Нов празен</Button>
             <Button Size="ThemeSize.Small" Variant="Variant.Solid" OnClick="@DuplicateTemplate"
-                    IsEnabled="@(_selectedTemplate is not null)">Копирай шаблон
+                    IsEnabled="@(_selectedTemplate is not null)">
+                Копирай шаблон
             </Button>
             <Button Size="ThemeSize.Small" Variant="Variant.Flat" Color="PaletteColor.Error"
-                    IsEnabled="@(_selectedTemplate is not null)" OnClick="@DeleteTemplateAsync">Изтрий шаблона</Button>
-            <Button Size="ThemeSize.Small" 
+                    IsEnabled="@(_selectedTemplate is not null)" OnClick="@DeleteTemplateAsync">
+                Изтрий шаблона
+            </Button>
+            <Button Size="ThemeSize.Small"
                     Color="PaletteColor.Primary"
                     OnClick="@SaveCommand.InvokeAsync"
                     IsBusy="@(SaveCommand.IsDisabled)">
@@ -35,7 +38,7 @@
     <PageAlert Class="my-2"></PageAlert>
 
     <div class="flex flex-1 min-h-0 gap-3">
-        <aside class="w-64 shrink-0 min-h-0 overflow-y-auto rounded-lg border border-current-border bg-surface text-surface-foreground p-2">
+        <aside class="w-64 shrink-0 min-h-0 overflow-y-auto rounded-lg border border-current-border bg-surface text-surface-foreground">
             <div class="font-semibold text-sm px-2 py-2">Шаблони (@_templates.Count)</div>
             @foreach (var template in _templates)
             {
@@ -50,35 +53,64 @@
             }
         </aside>
         <div class="flex flex-col flex-1 min-w-0 min-h-0">
-    <LoadingIndicator Class="h-full flex flex-col gap-1" Initializing="@(_name is null)" Visible="@(IsLoading.Value)" FadeIn="true">
-        <div class="flex flex-wrap gap-3 bg-surface text-surface-foreground items-end p-3 rounded-lg">
-            <div class="flex-1 min-w-56">
-                <Field>
-                    <FieldLabel>@L["Име на шаблона"]</FieldLabel>
-                    <FieldBody><TextField Placeholder="Име на шаблона" @bind-Value="_name"/></FieldBody>
-                </Field>
-            </div>
-        </div>
+            <LoadingIndicator Class="h-full flex flex-col gap-1" Initializing="@(_name is null)" Visible="@(IsLoading.Value)" FadeIn="true">
+                <ExpansionPanels>
+                    <ExpansionPanel DefaultIsExpanded Title="Данни за шаблона">
+                        <div class="flex flex-wrap gap-3 bg-surface text-surface-foreground items-end rounded-lg">
+                            <div class="flex-1 min-w-56">
+                                <Field>
+                                    <FieldLabel>@L["Име на шаблона"]</FieldLabel>
+                                    <FieldBody><TextField Placeholder="Име на шаблона" @bind-Value="_name" /></FieldBody>
+                                </Field>
+                            </div>
+                        </div>
 
-        <p class="text-xs opacity-70">Шаблоните се записват отделно. Изберете кой шаблон използва всяка фирма от
-            „Фирми“.
-         </p>
+                        <p class="text-xs opacity-70">
+                            Шаблоните се записват отделно. Изберете кой шаблон използва всяка фирма от
+                            „Фирми“.
+                        </p>
 
-        <div class="flex flex-wrap items-center gap-2 rounded-lg border border-current-border bg-surface text-surface-foreground p-2">
-            <span class="text-xs font-semibold">Вмъкни поле:</span>
-            @foreach (var field in TemplateFields)
-            {
-                <Button Size="ThemeSize.Small" Variant="Variant.Flat"
-                        OnClick="@(() => _editor?.InsertContent(field.Token))">@field.Label</Button>
-            }
-        </div>
-        <div class="min-h-[200px] h-full rounded-lg border border-current-border bg-surface text-surface-foreground p-4">
-            <TinyMceEditor @key="_editorKey" @ref="_editor" @bind-Value="_html"
-                           Conf="@_editorConfig" LicenseKey="gpl"
-                           ScriptSrc="@(Navigation.ToAbsoluteUri("libs/tinymce/tinymce.min.js").ToString())"
-                           ClassName="contract-tinymce-editor h-full"/>
-        </div>
-    </LoadingIndicator>
+                         <fieldset class="rounded-lg border border-current-border p-4">
+                                <legend class="px-2 text-sm font-semibold">
+                                   Вмъкни поле за фирмата:
+                                </legend>
+
+                                <div class="divide-current-border divide-y flex flex-wrap gap-2">
+                                  @foreach (var field in TemplateFields)
+                                    {
+                                        <Button Size="ThemeSize.ExtraSmall" Variant="Variant.Flat"
+                                                OnClick="@(() => _editor?.InsertContent(field.Token))">
+                                            @field.Label
+                                        </Button>
+                                    }
+                                </div>
+                            </fieldset>
+
+                             <fieldset class="rounded-lg border border-current-border p-4">
+                                <legend class="px-2 text-sm font-semibold">
+                                   Вмъкни поле за наемодателя:
+                                </legend>
+
+                                <div class="divide-current-border divide-y flex flex-wrap gap-2">
+                                  @foreach (var field in LandlordTemplateFields)
+                                    {
+                                        <Button Size="ThemeSize.ExtraSmall" Variant="Variant.Flat"
+                                                OnClick="@(() => _editor?.InsertContent(field.Token))">
+                                            @field.Label
+                                        </Button>
+                                    }
+                                </div>
+                            </fieldset>
+                    </ExpansionPanel>
+                </ExpansionPanels>
+
+                <div class="min-h-[200px] h-full rounded-lg border border-current-border bg-surface text-surface-foreground p-4">
+                    <TinyMceEditor @key="_editorKey" @ref="_editor" @bind-Value="_html"
+                                   Conf="@_editorConfig" LicenseKey="gpl"
+                                   ScriptSrc="@(Navigation.ToAbsoluteUri("libs/tinymce/tinymce.min.js").ToString())"
+                                   ClassName="contract-tinymce-editor h-full" />
+                </div>
+            </LoadingIndicator>
         </div>
     </div>
 </div>
@@ -104,16 +136,28 @@
     private static readonly (string Label, string Token)[] TemplateFields =
     [
         ("Име на фирма", "{{Firm.Name}}"),
-        ("ЕИК / БУЛСТАТ", "{{Firm.Bulstat}}"),
         ("Адрес на фирма", "{{Firm.Address}}"),
-        ("Представител", "{{Firm.Representative}}"),
-        ("Три имена", "{{Landlord.FullName}}"),
-        ("ЕГН", "{{Landlord.EGN}}"),
-        ("Адрес на наемодател", "{{Landlord.Address}}"),
-        ("Дата", "{{Contract.Date}}"),
-        ("Година", "{{Contract.Year}}"),
-        ("Списък с имоти", "{{Properties.List}}")
+        ("ЕИК / БУЛСТАТ", "{{Firm.EIK}}"),
+        ("Представител", "{{Firm.Representative}}") ,
+        ("Днешна Дата", "{{Contract.Date}}"),
+        ("Текуща Година", "{{Contract.Year}}"),
     ];
+
+    private static readonly (string Label, string Token)[] LandlordTemplateFields =
+    [
+        ("Три имена", "{{Landlord.FullName}}"),
+        ("Име / Фирма", "{{Landlord.DisplayName}}"),
+        ("Фирма", "{{Landlord.CompanyName}}"),
+        ("ЕИК", "{{Landlord.EIK}}"),
+        ("МОЛ", "{{Landlord.MOL}}"),
+        ("ЕГН", "{{Landlord.EGN}}"),
+        ("Адрес", "{{Landlord.Address}}"),
+        ("Телефон", "{{Landlord.Phone}}"),
+        ("Л.К. номер", "{{Landlord.IDCard}}"),
+        ("Л.К. дата", "{{Landlord.IDCardDate}}"),
+        ("МВР", "{{Landlord.Issuer}}"),
+        ("Списък с имоти", "{{Properties.List}}")
+   ];
 
     private readonly Dictionary<string, object> _editorConfig = new()
     {
@@ -197,7 +241,7 @@
             .OnErrorAsync(async x =>
             {
                 await AlertErrorAsync(x.Exception!);
-                
+
             });
     }
 
@@ -220,8 +264,12 @@
             "Потвърждение",
             $"Наистина ли искате да изтриете шаблона „{_selectedTemplate.Name}“? Фирмите, които го използват, ще останат без избран шаблон.",
             yesText: "Изтрий", cancelText: "Откажи",
-            options: new DialogOptions { MaxWidth = "sm", CloseButton = true,
-                TransitionEnter = AnimateBook.ZoomEntrances.ZoomIn.Build() });
+            options: new DialogOptions
+            {
+                MaxWidth = "sm",
+                CloseButton = true,
+                TransitionEnter = AnimateBook.ZoomEntrances.ZoomIn.Build()
+            });
         if (confirm != true) return;
 
         try
@@ -277,12 +325,12 @@
         using var _ = SetProcessing();
 
         var saved = await Firms.SaveTemplateAsync(new ContractTemplate
-            {
-                Id = _selectedTemplate?.Id ?? 0,
-                Name = _name,
-                Html = _html,
-                LegacyRtfFile = _selectedTemplate?.LegacyRtfFile
-            }).ToResult()
+        {
+            Id = _selectedTemplate?.Id ?? 0,
+            Name = _name,
+            Html = _html,
+            LegacyRtfFile = _selectedTemplate?.LegacyRtfFile
+        }).ToResult()
             .TapAsync(async x =>
             {
                 _templates = await Firms.ListTemplatesAsync();
@@ -291,7 +339,7 @@
             .OnErrorAsync(async x =>
             {
                 await AlertErrorAsync(x.Exception!);
-                
+
             });
     }
 

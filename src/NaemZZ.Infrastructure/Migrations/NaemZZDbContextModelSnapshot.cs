@@ -17,19 +17,59 @@ namespace NaemZZ.Infrastructure.Migrations
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "10.0.12");
 
-            modelBuilder.Entity("NaemZZ.Core.Entities.CATEGORI", b =>
+            modelBuilder.Entity("NaemZZ.Core.Entities.Company", b =>
                 {
-                    b.Property<int>("ID")
+                    b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("INTEGER")
+                        .HasColumnName("firmID");
 
-                    b.Property<string>("NAME")
-                        .HasMaxLength(3)
+                    b.Property<string>("Address")
+                        .HasMaxLength(100)
+                        .HasColumnType("TEXT")
+                        .HasColumnName("firmADDRESS");
+
+                    b.Property<string>("BULSTAT")
+                        .HasMaxLength(10)
                         .HasColumnType("TEXT");
 
-                    b.HasKey("ID");
+                    b.Property<int?>("ContractTemplateId")
+                        .HasColumnType("INTEGER");
 
-                    b.ToTable("CATEGORI", (string)null);
+                    b.Property<string>("Name")
+                        .HasMaxLength(100)
+                        .HasColumnType("TEXT")
+                        .HasColumnName("firmNAME");
+
+                    b.Property<string>("Representative")
+                        .HasMaxLength(50)
+                        .HasColumnType("TEXT")
+                        .HasColumnName("firmMOL");
+
+                    b.Property<string>("RepresentativeEgn")
+                        .HasMaxLength(15)
+                        .HasColumnType("TEXT")
+                        .HasColumnName("firmEGN");
+
+                    b.Property<string>("RepresentativeIdCard")
+                        .HasMaxLength(15)
+                        .HasColumnType("TEXT")
+                        .HasColumnName("firmLK");
+
+                    b.Property<DateTime?>("RepresentativeIdCardDate")
+                        .HasColumnType("TEXT")
+                        .HasColumnName("firmLKDATE");
+
+                    b.Property<string>("RepresentativeIdCardIssuer")
+                        .HasMaxLength(50)
+                        .HasColumnType("TEXT")
+                        .HasColumnName("firmMVR");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ContractTemplateId");
+
+                    b.ToTable("FIRM", (string)null);
                 });
 
             modelBuilder.Entity("NaemZZ.Core.Entities.ContractTemplate", b =>
@@ -56,181 +96,7 @@ namespace NaemZZ.Infrastructure.Migrations
                     b.ToTable("ContractTemplates", (string)null);
                 });
 
-            modelBuilder.Entity("NaemZZ.Core.Entities.EKATTE", b =>
-                {
-                    b.Property<int>("ID")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER");
-
-                    b.Property<string>("EKATTE_CODE")
-                        .HasMaxLength(5)
-                        .HasColumnType("TEXT")
-                        .HasColumnName("EKATTE");
-
-                    b.Property<string>("NAME")
-                        .HasMaxLength(100)
-                        .HasColumnType("TEXT");
-
-                    b.Property<int?>("OBST_ID")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<string>("T_V_M")
-                        .HasMaxLength(4)
-                        .HasColumnType("TEXT");
-
-                    b.HasKey("ID");
-
-                    b.HasIndex("OBST_ID");
-
-                    b.ToTable("EKATTE", (string)null);
-                });
-
-            modelBuilder.Entity("NaemZZ.Core.Entities.EK_OBL", b =>
-                {
-                    b.Property<int>("ID")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER");
-
-                    b.Property<string>("EKATTE")
-                        .HasMaxLength(5)
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("NAME")
-                        .HasMaxLength(100)
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("OBLAST")
-                        .HasMaxLength(3)
-                        .HasColumnType("TEXT");
-
-                    b.HasKey("ID");
-
-                    b.ToTable("EK_OBL", (string)null);
-                });
-
-            modelBuilder.Entity("NaemZZ.Core.Entities.EK_OBST", b =>
-                {
-                    b.Property<int>("ID")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER");
-
-                    b.Property<string>("EKATTE")
-                        .HasMaxLength(5)
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("NAME")
-                        .HasMaxLength(100)
-                        .HasColumnType("TEXT");
-
-                    b.Property<int?>("OBL_ID")
-                        .HasColumnType("INTEGER");
-
-                    b.HasKey("ID");
-
-                    b.HasIndex("OBL_ID");
-
-                    b.ToTable("EK_OBST", (string)null);
-                });
-
-            modelBuilder.Entity("NaemZZ.Core.Entities.FIRM", b =>
-                {
-                    b.Property<int>("firmID")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER");
-
-                    b.Property<string>("BULSTAT")
-                        .HasMaxLength(10)
-                        .HasColumnType("TEXT");
-
-                    b.Property<int?>("ContractTemplateId")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<string>("firmADDRESS")
-                        .HasMaxLength(100)
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("firmEGN")
-                        .HasMaxLength(15)
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("firmLK")
-                        .HasMaxLength(15)
-                        .HasColumnType("TEXT");
-
-                    b.Property<DateTime?>("firmLKDATE")
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("firmMOL")
-                        .HasMaxLength(50)
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("firmMVR")
-                        .HasMaxLength(50)
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("firmNAME")
-                        .HasMaxLength(100)
-                        .HasColumnType("TEXT");
-
-                    b.HasKey("firmID");
-
-                    b.HasIndex("ContractTemplateId");
-
-                    b.ToTable("FIRM", (string)null);
-                });
-
-            modelBuilder.Entity("NaemZZ.Core.Entities.IMOTI", b =>
-                {
-                    b.Property<int>("imotiID")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER");
-
-                    b.Property<int?>("CATEGORY")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<int?>("EKATTE_AREA")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<int?>("EKATTE_CITY")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<int?>("EKATTE_MUNICIPALITY")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<string>("LIMITS")
-                        .HasMaxLength(100)
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("NOMER")
-                        .HasMaxLength(10)
-                        .HasColumnType("TEXT");
-
-                    b.Property<decimal?>("PLOST")
-                        .HasColumnType("decimal(18,3)");
-
-                    b.Property<string>("TERRAIN")
-                        .HasMaxLength(50)
-                        .HasColumnType("TEXT");
-
-                    b.Property<int?>("nID")
-                        .HasColumnType("INTEGER");
-
-                    b.HasKey("imotiID");
-
-                    b.HasIndex("CATEGORY");
-
-                    b.HasIndex("EKATTE_AREA");
-
-                    b.HasIndex("EKATTE_CITY");
-
-                    b.HasIndex("EKATTE_MUNICIPALITY");
-
-                    b.HasIndex("nID");
-
-                    b.ToTable("IMOTI", (string)null);
-                });
-
-            modelBuilder.Entity("NaemZZ.Core.Entities.NAEMODATELI", b =>
+            modelBuilder.Entity("NaemZZ.Core.Entities.Landlord", b =>
                 {
                     b.Property<int>("ID")
                         .ValueGeneratedOnAdd()
@@ -239,11 +105,22 @@ namespace NaemZZ.Infrastructure.Migrations
                     b.Property<int?>("CITY")
                         .HasColumnType("INTEGER");
 
+                    b.Property<string>("CompanyName")
+                        .HasMaxLength(250)
+                        .HasColumnType("TEXT");
+
                     b.Property<string>("EGN")
                         .HasMaxLength(15)
                         .HasColumnType("TEXT");
 
+                    b.Property<string>("EIK")
+                        .HasMaxLength(13)
+                        .HasColumnType("TEXT");
+
                     b.Property<int?>("FIRM_ID")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<bool>("IsCompany")
                         .HasColumnType("INTEGER");
 
                     b.Property<string>("LASTNAME")
@@ -255,6 +132,10 @@ namespace NaemZZ.Infrastructure.Migrations
                         .HasColumnType("TEXT");
 
                     b.Property<DateTime?>("LKDATE")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("MOL")
+                        .HasMaxLength(150)
                         .HasColumnType("TEXT");
 
                     b.Property<string>("MVR")
@@ -296,27 +177,153 @@ namespace NaemZZ.Infrastructure.Migrations
                     b.ToTable("NAEMODATELI", (string)null);
                 });
 
-            modelBuilder.Entity("NaemZZ.Core.Entities.EKATTE", b =>
+            modelBuilder.Entity("NaemZZ.Core.Entities.Municipality", b =>
                 {
-                    b.HasOne("NaemZZ.Core.Entities.EK_OBST", "EK_OBST")
-                        .WithMany("EKATTEs")
-                        .HasForeignKey("OBST_ID")
-                        .OnDelete(DeleteBehavior.Restrict);
+                    b.Property<int>("ID")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
 
-                    b.Navigation("EK_OBST");
+                    b.Property<string>("NAME")
+                        .HasMaxLength(100)
+                        .HasColumnType("TEXT");
+
+                    b.Property<int?>("OBL_ID")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Settlement")
+                        .HasMaxLength(5)
+                        .HasColumnType("TEXT")
+                        .HasColumnName("EKATTE");
+
+                    b.HasKey("ID");
+
+                    b.HasIndex("OBL_ID");
+
+                    b.ToTable("EK_OBST", (string)null);
                 });
 
-            modelBuilder.Entity("NaemZZ.Core.Entities.EK_OBST", b =>
+            modelBuilder.Entity("NaemZZ.Core.Entities.Property", b =>
                 {
-                    b.HasOne("NaemZZ.Core.Entities.EK_OBL", "EK_OBL")
-                        .WithMany("EK_OBSTs")
-                        .HasForeignKey("OBL_ID")
-                        .OnDelete(DeleteBehavior.Restrict);
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER")
+                        .HasColumnName("imotiID");
 
-                    b.Navigation("EK_OBL");
+                    b.Property<int?>("CATEGORY")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int?>("EKATTE_AREA")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int?>("EKATTE_CITY")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int?>("EKATTE_MUNICIPALITY")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("LIMITS")
+                        .HasMaxLength(100)
+                        .HasColumnType("TEXT");
+
+                    b.Property<int?>("LandlordId")
+                        .HasColumnType("INTEGER")
+                        .HasColumnName("nID");
+
+                    b.Property<string>("NOMER")
+                        .HasMaxLength(10)
+                        .HasColumnType("TEXT");
+
+                    b.Property<decimal?>("PLOST")
+                        .HasColumnType("decimal(18,3)");
+
+                    b.Property<string>("TERRAIN")
+                        .HasMaxLength(50)
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CATEGORY");
+
+                    b.HasIndex("EKATTE_AREA");
+
+                    b.HasIndex("EKATTE_CITY");
+
+                    b.HasIndex("EKATTE_MUNICIPALITY");
+
+                    b.HasIndex("LandlordId");
+
+                    b.ToTable("IMOTI", (string)null);
                 });
 
-            modelBuilder.Entity("NaemZZ.Core.Entities.FIRM", b =>
+            modelBuilder.Entity("NaemZZ.Core.Entities.PropertyCategory", b =>
+                {
+                    b.Property<int>("ID")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("NAME")
+                        .HasMaxLength(3)
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("ID");
+
+                    b.ToTable("CATEGORI", (string)null);
+                });
+
+            modelBuilder.Entity("NaemZZ.Core.Entities.Region", b =>
+                {
+                    b.Property<int>("ID")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("NAME")
+                        .HasMaxLength(100)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("OBLAST")
+                        .HasMaxLength(3)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Settlement")
+                        .HasMaxLength(5)
+                        .HasColumnType("TEXT")
+                        .HasColumnName("EKATTE");
+
+                    b.HasKey("ID");
+
+                    b.ToTable("EK_OBL", (string)null);
+                });
+
+            modelBuilder.Entity("NaemZZ.Core.Entities.Settlement", b =>
+                {
+                    b.Property<int>("ID")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("EKATTE_CODE")
+                        .HasMaxLength(5)
+                        .HasColumnType("TEXT")
+                        .HasColumnName("EKATTE");
+
+                    b.Property<string>("NAME")
+                        .HasMaxLength(100)
+                        .HasColumnType("TEXT");
+
+                    b.Property<int?>("OBST_ID")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("T_V_M")
+                        .HasMaxLength(4)
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("ID");
+
+                    b.HasIndex("OBST_ID");
+
+                    b.ToTable("EKATTE", (string)null);
+                });
+
+            modelBuilder.Entity("NaemZZ.Core.Entities.Company", b =>
                 {
                     b.HasOne("NaemZZ.Core.Entities.ContractTemplate", "ContractTemplate")
                         .WithMany("Firms")
@@ -326,78 +333,98 @@ namespace NaemZZ.Infrastructure.Migrations
                     b.Navigation("ContractTemplate");
                 });
 
-            modelBuilder.Entity("NaemZZ.Core.Entities.IMOTI", b =>
+            modelBuilder.Entity("NaemZZ.Core.Entities.Landlord", b =>
                 {
-                    b.HasOne("NaemZZ.Core.Entities.CATEGORI", "CATEGORI")
-                        .WithMany("IMOTIs")
-                        .HasForeignKey("CATEGORY")
-                        .OnDelete(DeleteBehavior.Restrict);
-
-                    b.HasOne("NaemZZ.Core.Entities.EK_OBL", "EK_OBL")
-                        .WithMany("IMOTIs")
-                        .HasForeignKey("EKATTE_AREA")
-                        .OnDelete(DeleteBehavior.Restrict);
-
-                    b.HasOne("NaemZZ.Core.Entities.EKATTE", "EKATTE")
-                        .WithMany("IMOTIs")
-                        .HasForeignKey("EKATTE_CITY")
-                        .OnDelete(DeleteBehavior.Restrict);
-
-                    b.HasOne("NaemZZ.Core.Entities.EK_OBST", "EK_OBST")
-                        .WithMany("IMOTIs")
-                        .HasForeignKey("EKATTE_MUNICIPALITY")
-                        .OnDelete(DeleteBehavior.Restrict);
-
-                    b.HasOne("NaemZZ.Core.Entities.NAEMODATELI", "NAEMODATELI")
-                        .WithMany("IMOTIs")
-                        .HasForeignKey("nID")
-                        .OnDelete(DeleteBehavior.Cascade);
-
-                    b.Navigation("CATEGORI");
-
-                    b.Navigation("EKATTE");
-
-                    b.Navigation("EK_OBL");
-
-                    b.Navigation("EK_OBST");
-
-                    b.Navigation("NAEMODATELI");
-                });
-
-            modelBuilder.Entity("NaemZZ.Core.Entities.NAEMODATELI", b =>
-                {
-                    b.HasOne("NaemZZ.Core.Entities.EKATTE", "EKATTE")
+                    b.HasOne("NaemZZ.Core.Entities.Settlement", "Settlement")
                         .WithMany("NAEMODATELIs")
                         .HasForeignKey("CITY")
                         .OnDelete(DeleteBehavior.Restrict);
 
-                    b.HasOne("NaemZZ.Core.Entities.FIRM", "FIRM")
+                    b.HasOne("NaemZZ.Core.Entities.Company", "Company")
                         .WithMany("NAEMODATELIs")
                         .HasForeignKey("FIRM_ID")
-                        .OnDelete(DeleteBehavior.Restrict);
+                        .OnDelete(DeleteBehavior.SetNull);
 
-                    b.HasOne("NaemZZ.Core.Entities.EK_OBL", "EK_OBL")
+                    b.HasOne("NaemZZ.Core.Entities.Region", "Region")
                         .WithMany("NAEMODATELIs")
                         .HasForeignKey("OBLAST")
                         .OnDelete(DeleteBehavior.Restrict);
 
-                    b.HasOne("NaemZZ.Core.Entities.EK_OBST", "EK_OBST")
+                    b.HasOne("NaemZZ.Core.Entities.Municipality", "Municipality")
                         .WithMany("NAEMODATELIs")
                         .HasForeignKey("OBSTINA")
                         .OnDelete(DeleteBehavior.Restrict);
 
-                    b.Navigation("EKATTE");
+                    b.Navigation("Company");
 
-                    b.Navigation("EK_OBL");
+                    b.Navigation("Municipality");
 
-                    b.Navigation("EK_OBST");
+                    b.Navigation("Region");
 
-                    b.Navigation("FIRM");
+                    b.Navigation("Settlement");
                 });
 
-            modelBuilder.Entity("NaemZZ.Core.Entities.CATEGORI", b =>
+            modelBuilder.Entity("NaemZZ.Core.Entities.Municipality", b =>
                 {
-                    b.Navigation("IMOTIs");
+                    b.HasOne("NaemZZ.Core.Entities.Region", "Region")
+                        .WithMany("EK_OBSTs")
+                        .HasForeignKey("OBL_ID")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("Region");
+                });
+
+            modelBuilder.Entity("NaemZZ.Core.Entities.Property", b =>
+                {
+                    b.HasOne("NaemZZ.Core.Entities.PropertyCategory", "PropertyCategory")
+                        .WithMany("IMOTIs")
+                        .HasForeignKey("CATEGORY")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("NaemZZ.Core.Entities.Region", "Region")
+                        .WithMany("IMOTIs")
+                        .HasForeignKey("EKATTE_AREA")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("NaemZZ.Core.Entities.Settlement", "Settlement")
+                        .WithMany("IMOTIs")
+                        .HasForeignKey("EKATTE_CITY")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("NaemZZ.Core.Entities.Municipality", "Municipality")
+                        .WithMany("IMOTIs")
+                        .HasForeignKey("EKATTE_MUNICIPALITY")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("NaemZZ.Core.Entities.Landlord", "Landlord")
+                        .WithMany("IMOTIs")
+                        .HasForeignKey("LandlordId")
+                        .OnDelete(DeleteBehavior.Cascade);
+
+                    b.Navigation("Landlord");
+
+                    b.Navigation("Municipality");
+
+                    b.Navigation("PropertyCategory");
+
+                    b.Navigation("Region");
+
+                    b.Navigation("Settlement");
+                });
+
+            modelBuilder.Entity("NaemZZ.Core.Entities.Settlement", b =>
+                {
+                    b.HasOne("NaemZZ.Core.Entities.Municipality", "Municipality")
+                        .WithMany("EKATTEs")
+                        .HasForeignKey("OBST_ID")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("Municipality");
+                });
+
+            modelBuilder.Entity("NaemZZ.Core.Entities.Company", b =>
+                {
+                    b.Navigation("NAEMODATELIs");
                 });
 
             modelBuilder.Entity("NaemZZ.Core.Entities.ContractTemplate", b =>
@@ -405,23 +432,12 @@ namespace NaemZZ.Infrastructure.Migrations
                     b.Navigation("Firms");
                 });
 
-            modelBuilder.Entity("NaemZZ.Core.Entities.EKATTE", b =>
+            modelBuilder.Entity("NaemZZ.Core.Entities.Landlord", b =>
                 {
                     b.Navigation("IMOTIs");
-
-                    b.Navigation("NAEMODATELIs");
                 });
 
-            modelBuilder.Entity("NaemZZ.Core.Entities.EK_OBL", b =>
-                {
-                    b.Navigation("EK_OBSTs");
-
-                    b.Navigation("IMOTIs");
-
-                    b.Navigation("NAEMODATELIs");
-                });
-
-            modelBuilder.Entity("NaemZZ.Core.Entities.EK_OBST", b =>
+            modelBuilder.Entity("NaemZZ.Core.Entities.Municipality", b =>
                 {
                     b.Navigation("EKATTEs");
 
@@ -430,14 +446,25 @@ namespace NaemZZ.Infrastructure.Migrations
                     b.Navigation("NAEMODATELIs");
                 });
 
-            modelBuilder.Entity("NaemZZ.Core.Entities.FIRM", b =>
+            modelBuilder.Entity("NaemZZ.Core.Entities.PropertyCategory", b =>
                 {
+                    b.Navigation("IMOTIs");
+                });
+
+            modelBuilder.Entity("NaemZZ.Core.Entities.Region", b =>
+                {
+                    b.Navigation("EK_OBSTs");
+
+                    b.Navigation("IMOTIs");
+
                     b.Navigation("NAEMODATELIs");
                 });
 
-            modelBuilder.Entity("NaemZZ.Core.Entities.NAEMODATELI", b =>
+            modelBuilder.Entity("NaemZZ.Core.Entities.Settlement", b =>
                 {
                     b.Navigation("IMOTIs");
+
+                    b.Navigation("NAEMODATELIs");
                 });
 #pragma warning restore 612, 618
         }

@@ -9,6 +9,11 @@ public class Landlord
 {
     public int ID { get; set; }
 
+    public bool IsCompany { get; set; }
+    public string? CompanyName { get; set; }
+    public string? EIK { get; set; }
+    public string? MOL { get; set; }
+
     public string? NAME { get; set; } = "[нов]";
 
     public string? SURNAME { get; set; }

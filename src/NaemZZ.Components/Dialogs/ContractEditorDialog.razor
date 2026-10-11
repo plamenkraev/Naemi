@@ -64,14 +64,49 @@
                 @if (_editingTemplate)
                 {
                     <div class="text-xs opacity-70">Редактирайте текста директно. За динамични данни използвайте бутоните по-долу. Запазването променя бъдещите договори.</div>
-                    <div class="flex flex-wrap items-center gap-2 rounded-lg border border-divider p-2">
-                        <span class="text-xs font-semibold">Вмъкни поле:</span>
-                        @foreach (var field in TemplateFields)
-                        {
-                            <Button Size="ThemeSize.Small" Variant="Variant.Flat" OnClick="@(() => InsertField(field.Token))">@field.Label</Button>
-                        }
-                    </div>
-                    <TextField Placeholder="Име на шаблона" @bind-Value="_templateName" />
+                     <ExpansionPanels>
+                    <ExpansionPanel DefaultIsExpanded Title="Данни за шаблона">
+                        
+                         <Field>
+                                <FieldLabel>@L["Име на шаблона"]</FieldLabel>
+                                <FieldBody><TextField Placeholder="Име на шаблона" @bind-Value="_templateName" /></FieldBody>
+                           </Field>
+
+                         <fieldset class="rounded-lg border border-current-border p-4">
+                                <legend class="px-2 text-sm font-semibold">
+                                   Вмъкни поле за фирмата:
+                                </legend>
+
+                                <div class="divide-current-border divide-y flex flex-wrap gap-2">
+                                  @foreach (var field in TemplateFields)
+                                    {
+                                        <Button Size="ThemeSize.ExtraSmall" Variant="Variant.Flat"
+                                                OnClick="@(() => _editor?.InsertContent(field.Token))">
+                                            @field.Label
+                                        </Button>
+                                    }
+                                </div>
+                            </fieldset>
+
+                             <fieldset class="rounded-lg border border-current-border p-4">
+                                <legend class="px-2 text-sm font-semibold">
+                                   Вмъкни поле за наемодателя:
+                                </legend>
+
+                                <div class="divide-current-border divide-y flex flex-wrap gap-2">
+                                  @foreach (var field in LandlordTemplateFields)
+                                    {
+                                        <Button Size="ThemeSize.ExtraSmall" Variant="Variant.Flat"
+                                                OnClick="@(() => _editor?.InsertContent(field.Token))">
+                                            @field.Label
+                                        </Button>
+                                    }
+                                </div>
+                            </fieldset>
+                            
+                    </ExpansionPanel>
+                    </ExpansionPanels>
+                   
                 }
 
                 <div class="min-h-[420px] h-full rounded-lg border border-divider bg-white text-black p-4">
@@ -98,16 +133,28 @@
     private static readonly (string Label, string Token)[] TemplateFields =
     [
         ("Име на фирма", "{{Firm.Name}}"),
-        ("ЕИК / БУЛСТАТ", "{{Firm.Bulstat}}"),
         ("Адрес на фирма", "{{Firm.Address}}"),
-        ("Представител", "{{Firm.Representative}}"),
-        ("Три имена", "{{Landlord.FullName}}"),
-        ("ЕГН", "{{Landlord.EGN}}"),
-        ("Адрес на наемодател", "{{Landlord.Address}}"),
-        ("Дата", "{{Contract.Date}}"),
-        ("Година", "{{Contract.Year}}"),
-        ("Списък с имоти", "{{Properties.List}}")
+        ("ЕИК / БУЛСТАТ", "{{Firm.EIK}}"),
+        ("Представител", "{{Firm.Representative}}") ,
+        ("Днешна Дата", "{{Contract.Date}}"),
+        ("Текуща Година", "{{Contract.Year}}"),
     ];
+
+    private static readonly (string Label, string Token)[] LandlordTemplateFields =
+    [
+        ("Три имена", "{{Landlord.FullName}}"),
+        ("Име / Фирма", "{{Landlord.DisplayName}}"),
+        ("Фирма", "{{Landlord.CompanyName}}"),
+        ("ЕИК", "{{Landlord.EIK}}"),
+        ("МОЛ", "{{Landlord.MOL}}"),
+        ("ЕГН", "{{Landlord.EGN}}"),
+        ("Адрес", "{{Landlord.Address}}"),
+        ("Телефон", "{{Landlord.Phone}}"),
+        ("Л.К. номер", "{{Landlord.IDCard}}"),
+        ("Л.К. дата", "{{Landlord.IDCardDate}}"),
+        ("МВР", "{{Landlord.Issuer}}"),       
+        ("Списък с имоти", "{{Properties.List}}")
+   ];
     private void InsertField(string token) => _editor?.InsertContent(token);
 
     private ContractTemplate? _template;

@@ -12,6 +12,9 @@ public class NaemodateliConfiguration : IEntityTypeConfiguration<Landlord>
         builder.ToTable("NAEMODATELI");
         builder.HasKey(n => n.ID);
 
+        builder.Property(n => n.CompanyName).HasMaxLength(250);
+        builder.Property(n => n.EIK).HasMaxLength(13);
+        builder.Property(n => n.MOL).HasMaxLength(150);
         builder.Property(n => n.NAME).HasMaxLength(100);
         builder.Property(n => n.SURNAME).HasMaxLength(100);
         builder.Property(n => n.LASTNAME).HasMaxLength(100);

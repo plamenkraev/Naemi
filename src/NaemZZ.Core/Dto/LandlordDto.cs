@@ -8,11 +8,20 @@ public sealed class LandlordListDto
     public string? LASTNAME { get; set; }
     public int? CompanyId { get; set; }
     public int PropertyCount { get; set; }
+    public bool IsCompany { get; set; }
+    public string? LegalName { get; set; }
+    public string? CompanyName { get; set; }
+    public string? EIK { get; set; }
+    public string? MOL { get; set; }
 }
 
 public sealed class LandlordDto
 {
     public int ID { get; set; }
+    public bool IsCompany { get; set; }
+    public string? CompanyName { get; set; }
+    public string? EIK { get; set; }
+    public string? MOL { get; set; }
     public string? NAME { get; set; } = "[нов]";
     public string? SURNAME { get; set; }
     public string? LASTNAME { get; set; }

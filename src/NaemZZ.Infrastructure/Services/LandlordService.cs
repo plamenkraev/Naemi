@@ -23,6 +23,8 @@ public sealed class LandlordService(IDbContextFactory<NaemZZDbContext> factory, 
             {
                 ID = x.ID,
                 NAME = x.NAME,
+                IsCompany = x.IsCompany,
+                LegalName = x.CompanyName,
                 SURNAME = x.SURNAME,
                 LASTNAME = x.LASTNAME,
                 CompanyId = x.FIRM_ID,
@@ -39,7 +41,9 @@ public sealed class LandlordService(IDbContextFactory<NaemZZDbContext> factory, 
             landlords = landlords
                 .Where(x =>
                 {
-                    var fullName = $"{x.NAME} {x.SURNAME} {x.LASTNAME}";
+                    var fullName = x.IsCompany
+                        ? $"{x.CompanyName} {x.EIK} {x.MOL}"
+                        : $"{x.NAME} {x.SURNAME} {x.LASTNAME}";
 
                     return terms.All(term =>
                         fullName.Contains(

@@ -21,7 +21,7 @@
                         class="@Css.Class("block w-full border-b border-divider px-3 py-2 text-left text-sm hover:bg-surface-subtle", ("bg-primary/10 font-semibold", landlord.ID == _selectedLandlordId), ("bg-warning/20", landlord.CompanyId is null))"
                         @onclick="() => Select(landlord)">
                     <span class="flex items-center justify-between gap-2">
-                        <span class="min-w-0 truncate">@landlord.NAME @landlord.SURNAME @landlord.LASTNAME</span>
+                        <span class="min-w-0 truncate">@(landlord.IsCompany ? landlord.LegalName : $"{landlord.NAME} {landlord.SURNAME} {landlord.LASTNAME}")</span>
 
                         <div class="flex items-center gap-1">
                             <Tooltip IsEnabled="@(landlord.CompanyId is null)" Text="Фирмата не е зададена">
@@ -138,9 +138,22 @@
                             </FieldBody>
                         </Field>
 
-                        <TextField Placeholder="Име" Size="ThemeSize.Small" @bind-Value="_current.NAME" ErrorMessage="@LandlordError("NAME")" />
-                        <TextField Placeholder="Презиме" Size="ThemeSize.Small" @bind-Value="_current.SURNAME" ErrorMessage="@LandlordError("SURNAME")" />
-                        <TextField Placeholder="Фамилия" Size="ThemeSize.Small" @bind-Value="_current.LASTNAME" ErrorMessage="@LandlordError("LASTNAME")" />
+                        <label class="flex items-center gap-2 text-sm cursor-pointer">
+                            <input type="checkbox" class="size-4" @bind="_current.IsCompany" />
+                            Юридическо лице (фирма)
+                        </label>
+                        @if (_current.IsCompany)
+                        {
+                            <TextField Placeholder="Наименование на фирмата" Size="ThemeSize.Small" @bind-Value="_current.CompanyName" ErrorMessage="@LandlordError("CompanyName")" />
+                            <TextField Placeholder="ЕИК / БУЛСТАТ" Size="ThemeSize.Small" @bind-Value="_current.EIK" ErrorMessage="@LandlordError("EIK")" />
+                            <TextField Placeholder="МОЛ / Представляващ" Size="ThemeSize.Small" @bind-Value="_current.MOL" />
+                        }
+                        else
+                        {
+                            <TextField Placeholder="Име" Size="ThemeSize.Small" @bind-Value="_current.NAME" ErrorMessage="@LandlordError("NAME")" />
+                            <TextField Placeholder="Презиме" Size="ThemeSize.Small" @bind-Value="_current.SURNAME" ErrorMessage="@LandlordError("SURNAME")" />
+                            <TextField Placeholder="Фамилия" Size="ThemeSize.Small" @bind-Value="_current.LASTNAME" ErrorMessage="@LandlordError("LASTNAME")" />
+                        }
                         <LocationCascadeSelect @key="_current"
                                                RegionId="@_current.OBLAST"
                                                RegionIdChanged="@(v => _current.OBLAST = v)"
@@ -151,12 +164,15 @@
                     </div>
                     <div class="flex flex-col gap-2">
                         <TextField Placeholder="Улица" Size="ThemeSize.Small" @bind-Value="_current.STREET" ErrorMessage="@LandlordError("STREET")" />
-                        <TextField Placeholder="ЕГН" Size="ThemeSize.Small" @bind-Value="_current.EGN" ErrorMessage="@LandlordError("EGN")" />
-                        <div class="flex gap-2">
-                            <TextField Placeholder="ЛК №" Size="ThemeSize.Small" @bind-Value="_current.LK" ErrorMessage="@LandlordError("LK")" />
-                            <DateInput Placeholder="Дата" Size="ThemeSize.Small" DateFormat="dd.MM.yyyy" @bind-Value="_current.LKDATE" />
-                        </div>
-                        <TextField Placeholder="МВР" Size="ThemeSize.Small" @bind-Value="_current.MVR" ErrorMessage="@LandlordError("MVR")" />
+                        @if (!_current.IsCompany)
+                        {
+                            <TextField Placeholder="ЕГН" Size="ThemeSize.Small" @bind-Value="_current.EGN" ErrorMessage="@LandlordError("EGN")" />
+                            <div class="flex gap-2">
+                                <TextField Placeholder="ЛК №" Size="ThemeSize.Small" @bind-Value="_current.LK" ErrorMessage="@LandlordError("LK")" />
+                                <DateInput Placeholder="Дата" Size="ThemeSize.Small" DateFormat="dd.MM.yyyy" @bind-Value="_current.LKDATE" />
+                            </div>
+                            <TextField Placeholder="МВР" Size="ThemeSize.Small" @bind-Value="_current.MVR" ErrorMessage="@LandlordError("MVR")" />
+                        }
                         <TextField Placeholder="Телефон" Size="ThemeSize.Small" @bind-Value="_current.Phone" />
                     </div>
                 </div>

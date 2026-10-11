@@ -17,6 +17,17 @@ public static class BulgarianValidation
     public static IReadOnlyDictionary<string, string> ValidateLandlord(Landlord n)
     {
         var errors = new Dictionary<string, string>();
+        if (n.IsCompany)
+        {
+            if (string.IsNullOrWhiteSpace(n.CompanyName))
+                errors["CompanyName"] = "Въведете наименование на фирмата.";
+            if (string.IsNullOrWhiteSpace(n.EIK))
+                errors["EIK"] = "Въведете ЕИК / БУЛСТАТ.";
+            else if (!Regex.IsMatch(n.EIK, @"^\d{9}(\d{4})?$|^\d{10}$"))
+                errors["EIK"] = "ЕИК / БУЛСТАТ трябва да съдържа 9, 10 или 13 цифри.";
+            return errors;
+        }
+
 
        /* if (!string.IsNullOrWhiteSpace(n.NAME) && n.NAME == "[нов]")
         {
