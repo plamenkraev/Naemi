@@ -26,12 +26,12 @@
         </Field>
         </CardHeader>
         <CardContent>
-             @foreach (var company in _companies.WhereIIf(!_search.IIsNullOrEmpty(), w=> w.firmNAME?.Contains(_search, StringComparison.OrdinalIgnoreCase) is true))
+             @foreach (var company in _companies.WhereIIf(!_search.IIsNullOrEmpty(), w=> w.Name?.Contains(_search, StringComparison.OrdinalIgnoreCase) is true))
             {
-                <div class="flex items-center justify-between gap-3 rounded-lg border border-current-border p-3" @key="company.firmID">
+                <div class="flex items-center justify-between gap-3 rounded-lg border border-current-border p-3" @key="company.Id">
                     <div>
-                        <div class="font-semibold">@company.firmNAME</div>
-                        <div class="text-sm opacity-70">@company.BULSTAT · @company.firmADDRESS</div>
+                        <div class="font-semibold">@company.Name</div>
+                        <div class="text-sm opacity-70">@company.BULSTAT · @company.Address</div>
                         <div class="text-xs opacity-70">Шаблон: @(_templates.FirstOrDefault(x => x.Id == company.ContractTemplateId)?.Name ?? "По подразбиране")</div>
                     </div>
                     <Button Size="ThemeSize.Small" Variant="Variant.Flat" OnClick="@(() => EditAsync(company))">Редакция</Button>
@@ -61,9 +61,9 @@
         
         var copy = company is null ? new FirmDto() : new FirmDto
         {
-            firmID = company.firmID, firmNAME = company.firmNAME, firmADDRESS = company.firmADDRESS,
-            BULSTAT = company.BULSTAT, firmMOL = company.firmMOL, firmEGN = company.firmEGN,
-            firmLK = company.firmLK, firmLKDATE = company.firmLKDATE, firmMVR = company.firmMVR,
+            Id = company.Id, Name = company.Name, Address = company.Address,
+            BULSTAT = company.BULSTAT, Representative = company.Representative, RepresentativeEgn = company.RepresentativeEgn,
+            RepresentativeIdCard = company.RepresentativeIdCard, RepresentativeIdCardDate = company.RepresentativeIdCardDate, RepresentativeIdCardIssuer = company.RepresentativeIdCardIssuer,
             ContractTemplateId = company.ContractTemplateId
         };
         var dialog = await DialogService.ShowAsync<CompanyDialog>(

@@ -21,9 +21,9 @@ public partial class LocationCascadeSelect : ComponentBase
 
     [Parameter] public string? Class { get; set; }
 
-    private IReadOnlyList<EK_OBL> _regions = [];
-    private IReadOnlyList<EK_OBST> _municipalities = [];
-    private IReadOnlyList<EKATTE> _settlements = [];
+    private IReadOnlyList<Region> _regions = [];
+    private IReadOnlyList<Municipality> _municipalities = [];
+    private IReadOnlyList<Settlement> _settlements = [];
 
     private int? _loadedMunicipalitiesForRegion;
     private int? _loadedSettlementsForMunicipality;

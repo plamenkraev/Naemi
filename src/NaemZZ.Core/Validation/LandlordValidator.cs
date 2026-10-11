@@ -6,9 +6,9 @@ using Tjt.Validators;
 namespace NaemZZ.Core.Validators;
 
 // Reuses your existing Bulgarian rules so EGN and identity checks are not weakened.
-public sealed class LandlordValidator : BaseValidator<NAEMODATELI>
+public sealed class LandlordValidator : BaseValidator<Landlord>
 {
-    public LandlordValidator(IValidator<IMOTI> propertyValidator)
+    public LandlordValidator(IValidator<Property> propertyValidator)
     {
         RuleFor(x => x).Custom((landlord, context) =>
         {

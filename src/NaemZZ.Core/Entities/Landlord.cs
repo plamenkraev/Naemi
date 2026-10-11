@@ -1,11 +1,11 @@
 namespace NaemZZ.Core.Entities;
 
 /// <summary>
-/// Landlord ("Наемодател"). Recreated from the legacy EFDAL "NAEMODATELI" entity
+/// Landlord ("Наемодател"). Recreated from the legacy EFDAL "Landlord" entity
 /// (recovered from dbZZ.csdl/.ssdl via decompilation). Field names and types are
 /// preserved from the original SQL Server Compact schema.
 /// </summary>
-public class NAEMODATELI
+public class Landlord
 {
     public int ID { get; set; }
 
@@ -15,7 +15,7 @@ public class NAEMODATELI
 
     public string? LASTNAME { get; set; }
 
-    /// <summary>FK to <see cref="Entities.EKATTE"/> (settlement / Населено място).</summary>
+    /// <summary>FK to <see cref="Entities.Settlement"/> (settlement / Населено място).</summary>
     public int? CITY { get; set; }
 
     public string? STREET { get; set; }
@@ -31,26 +31,26 @@ public class NAEMODATELI
     /// <summary>Issuing police department ("МВР").</summary>
     public string? MVR { get; set; }
 
-    /// <summary>FK to <see cref="Entities.FIRM"/>; selects which contract template to print.</summary>
+    /// <summary>FK to <see cref="Entities.Company"/>; selects which contract template to print.</summary>
     public int? FIRM_ID { get; set; }
 
-    /// <summary>FK to <see cref="EK_OBST"/> (Община / municipality).</summary>
+    /// <summary>FK to <see cref="Municipality"/> (Община / municipality).</summary>
     public int? OBSTINA { get; set; }
 
-    /// <summary>FK to <see cref="EK_OBL"/> (Област / region).</summary>
+    /// <summary>FK to <see cref="Region"/> (Област / region).</summary>
     public int? OBLAST { get; set; }
 
     public string? Phone { get; set; }
 
-    public FIRM? FIRM { get; set; }
+    public Company? Company { get; set; }
 
-    public EK_OBL? EK_OBL { get; set; }
+    public Region? Region { get; set; }
 
-    public EK_OBST? EK_OBST { get; set; }
+    public Municipality? Municipality { get; set; }
 
-    public EKATTE? EKATTE { get; set; }
+    public Settlement? Settlement { get; set; }
 
-    public ICollection<IMOTI> IMOTIs { get; set; } = new List<IMOTI>();
+    public ICollection<Property> IMOTIs { get; set; } = new List<Property>();
 
     /// <summary>Total area (дка) of all properties belonging to this landlord. Mirrors legacy "GetTotal".</summary>
     public decimal GetTotal => IMOTIs.Sum(i => i.PLOST ?? 0m);

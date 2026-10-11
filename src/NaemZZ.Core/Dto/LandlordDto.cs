@@ -1,5 +1,14 @@
 namespace NaemZZ.Core.Dto;
 
+public sealed class LandlordListDto
+{
+    public int ID { get; set; }
+    public string? NAME { get; set; }
+    public string? SURNAME { get; set; }
+    public string? LASTNAME { get; set; }
+    public int PropertyCount { get; set; }
+}
+
 public sealed class LandlordDto
 {
     public int ID { get; set; }
@@ -22,7 +31,7 @@ public sealed class LandlordDto
 
 public sealed class PropertyDto
 {
-    public int imotiID { get; set; }
+    public int Id { get; set; }
     public int? EKATTE_CITY { get; set; }
     public int? EKATTE_MUNICIPALITY { get; set; }
     public int? EKATTE_AREA { get; set; }
@@ -31,19 +40,19 @@ public sealed class PropertyDto
     public string? TERRAIN { get; set; }
     public string? NOMER { get; set; }
     public string? LIMITS { get; set; }
-    public int? nID { get; set; }
+    public int? LandlordId { get; set; }
 }
 
 public sealed class FirmDto
 {
-    public int firmID { get; set; }
-    public string? firmNAME { get; set; }
-    public string? firmADDRESS { get; set; }
+    public int Id { get; set; }
+    public string? Name { get; set; }
+    public string? Address { get; set; }
     public string? BULSTAT { get; set; }
-    public string? firmMOL { get; set; }
-    public string? firmEGN { get; set; }
-    public string? firmLK { get; set; }
-    public DateTime? firmLKDATE { get; set; }
-    public string? firmMVR { get; set; }
+    public string? Representative { get; set; }
+    public string? RepresentativeEgn { get; set; }
+    public string? RepresentativeIdCard { get; set; }
+    public DateTime? RepresentativeIdCardDate { get; set; }
+    public string? RepresentativeIdCardIssuer { get; set; }
     public int? ContractTemplateId { get; set; }
 }

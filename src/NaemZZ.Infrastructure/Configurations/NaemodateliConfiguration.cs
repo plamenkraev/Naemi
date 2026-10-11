@@ -4,9 +4,9 @@ using NaemZZ.Core.Entities;
 
 namespace NaemZZ.Infrastructure.Configurations;
 
-public class NaemodateliConfiguration : IEntityTypeConfiguration<NAEMODATELI>
+public class NaemodateliConfiguration : IEntityTypeConfiguration<Landlord>
 {
-    public void Configure(EntityTypeBuilder<NAEMODATELI> builder)
+    public void Configure(EntityTypeBuilder<Landlord> builder)
     {
         builder.ToTable("NAEMODATELI");
         builder.HasKey(n => n.ID);
@@ -20,29 +20,29 @@ public class NaemodateliConfiguration : IEntityTypeConfiguration<NAEMODATELI>
         builder.Property(n => n.MVR).HasMaxLength(25);
         builder.Property(n => n.Phone).HasMaxLength(20);
 
-        builder.HasOne(n => n.FIRM)
+        builder.HasOne(n => n.Company)
             .WithMany(f => f.NAEMODATELIs)
             .HasForeignKey(n => n.FIRM_ID)
             .OnDelete(DeleteBehavior.Restrict);
 
-        builder.HasOne(n => n.EK_OBL)
+        builder.HasOne(n => n.Region)
             .WithMany(o => o.NAEMODATELIs)
             .HasForeignKey(n => n.OBLAST)
             .OnDelete(DeleteBehavior.Restrict);
 
-        builder.HasOne(n => n.EK_OBST)
+        builder.HasOne(n => n.Municipality)
             .WithMany(o => o.NAEMODATELIs)
             .HasForeignKey(n => n.OBSTINA)
             .OnDelete(DeleteBehavior.Restrict);
 
-        builder.HasOne(n => n.EKATTE)
+        builder.HasOne(n => n.Settlement)
             .WithMany(e => e.NAEMODATELIs)
             .HasForeignKey(n => n.CITY)
             .OnDelete(DeleteBehavior.Restrict);
 
         builder.HasMany(n => n.IMOTIs)
-            .WithOne(i => i.NAEMODATELI)
-            .HasForeignKey(i => i.nID)
+            .WithOne(i => i.Landlord)
+            .HasForeignKey(i => i.LandlordId)
             .OnDelete(DeleteBehavior.Cascade);
     }
 }

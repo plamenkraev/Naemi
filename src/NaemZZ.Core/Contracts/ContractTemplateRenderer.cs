@@ -16,17 +16,17 @@ public static partial class ContractTemplateRenderer
     [GeneratedRegex(@"\{\{([A-Za-z][A-Za-z0-9.]*)\}\}")]
     private static partial Regex Field();
 
-    public static string Render(string html, FirmDto? firm, NAEMODATELI landlord, DateTime? date = null)
+    public static string Render(string html, FirmDto? firm, Landlord landlord, DateTime? date = null)
     {
         var today = date ?? DateTime.Today;
         var bg = CultureInfo.GetCultureInfo("bg-BG");
         var fields = new Dictionary<string, string?>(StringComparer.OrdinalIgnoreCase)
         {
-            ["Firm.Name"] = firm?.firmNAME,
-            ["Firm.Address"] = firm?.firmADDRESS,
+            ["Firm.Name"] = firm?.Name,
+            ["Firm.Address"] = firm?.Address,
             ["Firm.Bulstat"] = firm?.BULSTAT,
             ["Firm.EIK"] = firm?.BULSTAT,
-            ["Firm.Representative"] = firm?.firmMOL,
+            ["Firm.Representative"] = firm?.Representative,
             ["Landlord.FullName"] = $"{landlord.NAME} {landlord.SURNAME} {landlord.LASTNAME}".Trim(),
             ["Landlord.EGN"] = landlord.EGN,
             ["Landlord.Address"] = landlord.STREET,
@@ -44,13 +44,13 @@ public static partial class ContractTemplateRenderer
             {
                 ["Number"] = p.NOMER,
                 ["Area"] = p.PLOST?.ToString("N3", bg),
-                ["Category"] = p.CATEGORI?.NAME,
+                ["Category"] = p.PropertyCategory?.NAME,
                 ["Terrain"] = p.TERRAIN,
                 ["Limits"] = p.LIMITS,
-                ["Region"] = p.EK_OBL?.NAME,
-                ["Municipality"] = p.EK_OBST?.NAME,
-                ["Settlement"] = p.EKATTE?.NAME,
-                ["EkatteCode"] = p.EKATTE?.EKATTE_CODE
+                ["Region"] = p.Region?.NAME,
+                ["Municipality"] = p.Municipality?.NAME,
+                ["Settlement"] = p.Settlement?.NAME,
+                ["EkatteCode"] = p.Settlement?.EKATTE_CODE
             };
             return "<p class=\"contract-property\">" +
                 "НИВА с площ от " + Enc(values["Area"]) + " дка, " +
@@ -69,10 +69,10 @@ public static partial class ContractTemplateRenderer
             var values = new Dictionary<string, string?>(StringComparer.OrdinalIgnoreCase)
             {
                 ["Number"] = p.NOMER, ["Area"] = p.PLOST?.ToString("N3", bg),
-                ["Category"] = p.CATEGORI?.NAME, ["Terrain"] = p.TERRAIN,
-                ["Limits"] = p.LIMITS, ["Region"] = p.EK_OBL?.NAME,
-                ["Municipality"] = p.EK_OBST?.NAME, ["Settlement"] = p.EKATTE?.NAME,
-                ["EkatteCode"] = p.EKATTE?.EKATTE_CODE
+                ["Category"] = p.PropertyCategory?.NAME, ["Terrain"] = p.TERRAIN,
+                ["Limits"] = p.LIMITS, ["Region"] = p.Region?.NAME,
+                ["Municipality"] = p.Municipality?.NAME, ["Settlement"] = p.Settlement?.NAME,
+                ["EkatteCode"] = p.Settlement?.EKATTE_CODE
             };
             return ReplaceFields(m.Groups[1].Value, values);
         })));

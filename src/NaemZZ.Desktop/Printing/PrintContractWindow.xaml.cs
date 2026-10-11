@@ -12,7 +12,7 @@ namespace NaemZZ.Desktop.Printing;
 
 /// <summary>
 /// Native WPF print-preview window for the rental contract. Ported from the legacy
-/// PrintView.xaml.cs: loads one of three RTF templates (selected by the landlord's FIRM),
+/// PrintView.xaml.cs: loads one of three RTF templates (selected by the landlord's Company),
 /// replaces the "&lt;&lt;n&gt;&gt;" placeholders with landlord/property data, repeats a
 /// per-property block via "repeat.txt", and prints the resulting FlowDocument.
 /// </summary>
@@ -26,12 +26,12 @@ public partial class PrintContractWindow : Window
         "<<11>>", "<<12>>", "<<13>>", "<<&"
     ];
 
-    private readonly NAEMODATELI _landlord;
+    private readonly Landlord _landlord;
     private List<string> _replaceText = [];
     private string _loopTemplate = "";
     private double _pageCount;
 
-    public PrintContractWindow(NAEMODATELI landlord)
+    public PrintContractWindow(Landlord landlord)
     {
         InitializeComponent();
         _landlord = landlord;
@@ -91,7 +91,7 @@ public partial class PrintContractWindow : Window
     {
         try
         {
-            return $"обл.{_landlord.EK_OBL?.NAME}, общ.{_landlord.EK_OBST?.NAME}, {_landlord.EKATTE?.T_V_M} {_landlord.EKATTE?.NAME}, {_landlord.STREET}";
+            return $"обл.{_landlord.Region?.NAME}, общ.{_landlord.Municipality?.NAME}, {_landlord.Settlement?.T_V_M} {_landlord.Settlement?.NAME}, {_landlord.STREET}";
         }
         catch (Exception)
         {
@@ -130,12 +130,12 @@ public partial class PrintContractWindow : Window
 
                 findR.ReplaceAll(_placeholders[0], property.PLOST?.ToString() ?? "", FindOptions.None, null);
                 findR.ReplaceAll(_placeholders[1], NUM2WORD.Num2Txt(property.PLOST?.ToString() ?? "0"), FindOptions.None, null);
-                findR.ReplaceAll(_placeholders[2], property.CATEGORI?.NAME ?? "", FindOptions.None, null);
-                findR.ReplaceAll(_placeholders[3], $"{property.EKATTE?.T_V_M?.Trim()} {property.EKATTE?.NAME}", FindOptions.None, null);
-                findR.ReplaceAll(_placeholders[4], property.EK_OBST?.NAME ?? "", FindOptions.None, null);
-                findR.ReplaceAll(_placeholders[5], property.EK_OBL?.NAME ?? "", FindOptions.None, null);
+                findR.ReplaceAll(_placeholders[2], property.PropertyCategory?.NAME ?? "", FindOptions.None, null);
+                findR.ReplaceAll(_placeholders[3], $"{property.Settlement?.T_V_M?.Trim()} {property.Settlement?.NAME}", FindOptions.None, null);
+                findR.ReplaceAll(_placeholders[4], property.Municipality?.NAME ?? "", FindOptions.None, null);
+                findR.ReplaceAll(_placeholders[5], property.Region?.NAME ?? "", FindOptions.None, null);
 
-                var ekatteCode = property.EKATTE?.EKATTE_CODE ?? "";
+                var ekatteCode = property.Settlement?.EKATTE_CODE ?? "";
                 var paddedEkatteCode = ekatteCode.PadLeft(6, '0');
                 findR.ReplaceAll(_placeholders[6], paddedEkatteCode, FindOptions.None, null);
 

@@ -11,7 +11,7 @@ namespace NaemZZ.Desktop.Services;
 /// </summary>
 public class PrintingService : IPrintingService
 {
-    public Task ShowPrintPreviewAsync(NAEMODATELI landlord)
+    public Task ShowPrintPreviewAsync(Landlord landlord)
     {
         var window = new PrintContractWindow(landlord)
         {

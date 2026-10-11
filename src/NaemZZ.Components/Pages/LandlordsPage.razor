@@ -15,41 +15,74 @@
             </FieldBody>
         </Field>
         <div class="min-h-0 flex-1 overflow-y-auto">
-            @foreach (var landlord in Service.Landlords)
+            @foreach (var landlord in _landlords)
             {
                 <button @key="landlord" type="button"
-                        class="block w-full border-b border-divider px-3 py-2 text-left text-sm hover:bg-content2 @(ReferenceEquals(landlord, _current) ? "bg-primary/10 font-semibold" : "")"
+                        class="block w-full border-b border-divider px-3 py-2 text-left text-sm hover:bg-content2 @(landlord.ID == _selectedLandlordId ? "bg-primary/10 font-semibold" : "")"
                         @onclick="() => Select(landlord)">
-                    @landlord.NAME @landlord.SURNAME @landlord.LASTNAME
+                    <span class="flex items-center justify-between gap-2">
+                        <span class="min-w-0 truncate">@landlord.NAME @landlord.SURNAME @landlord.LASTNAME</span>
+                        <span class="shrink-0 rounded-full bg-content2 px-2 py-0.5 text-xs" title="Брой имоти">@landlord.PropertyCount</span>
+                    </span>
                 </button>
             }
-            @if (Service.Landlords.Count == 0)
+            @if (_landlords.Count == 0)
             {
                 <div class="p-3 text-sm text-foreground-500">Няма резултати.</div>
             }
         </div>
     </aside>
 
-    <div class="flex min-h-0 min-w-0 flex-1 flex-col gap-4 overflow-y-auto p-4">
+    <div class="flex min-h-0 min-w-0 flex-1 flex-col gap-4 overflow-y-auto p-4" @onfocusout="@(() => RecordEdit())">
         <div class="flex flex-wrap items-center justify-between gap-2">
             <h1 class="text-lg font-semibold">Договори за наем</h1>
             <div class="flex items-center gap-2">
+                <Button Size="ThemeSize.Small" Variant="Variant.Flat" OnClick="@Undo" IsEnabled="@(_current is not null && (_editor.CanUndo || HasUnsavedChanges))">↶ Отмени</Button>
+                <Button Size="ThemeSize.Small" Variant="Variant.Flat" OnClick="@Redo" IsEnabled="@_editor.CanRedo">↷ Повтори</Button>
+                <Button Size="ThemeSize.Small" Variant="Variant.Flat" OnClick="@(() => _showHistory = !_showHistory)">История</Button>
+                @if (HasUnsavedChanges) { <span class="text-xs text-warning">● Незапазени промени</span> }
                 <Button Size="ThemeSize.Small" Variant="Variant.Solid" OnClick="@AddLandlord">
                     Добави наемодател
                 </Button>
                 <Button Size="ThemeSize.Small" Color="PaletteColor.Error" Variant="Variant.Flat"
-                        OnClick="@DeleteLandlord" IsEnabled="@(_current is not null)">Изтрий
+                        OnClick="@DeleteCommand.InvokeAsync" 
+                        IsBusy="@(DeleteCommand.IsDisabled)" 
+                        IsEnabled="@(_current is not null)">
+                    Изтрий
                 </Button>
-                <Button Size="ThemeSize.Small" Color="PaletteColor.Primary" OnClick="@SaveCommand.InvokeAsync"
-                        IsBusy="@(SaveCommand.IsDisabled)">Запис
+                <Button Size="ThemeSize.Small"
+                        Color="PaletteColor.Primary" 
+                        OnClick="@SaveCommand.InvokeAsync"
+                        IsBusy="@(SaveCommand.IsDisabled)" IsEnabled="@(_current is not null)">Запис
                 </Button>
-                <Button Size="ThemeSize.Small" Variant="Variant.Flat" OnClick="@PrintAsync"
-                        IsEnabled="@(_current is not null)">Печат
+                <Button Size="ThemeSize.Small"
+                        Variant="Variant.Flat"
+                        OnClick="@PrintAsync"
+                        IsEnabled="@(_current is not null)">
+                        Печат
                 </Button>
             </div>
         </div>
 
-        @if (_current is null)
+        @if (_showHistory && _current is not null)
+        {
+            <div class="rounded-lg border border-divider p-2 text-sm">
+                <strong>История на редакциите</strong>
+                <div class="flex flex-wrap gap-1 mt-2">
+                    @for (var i = 0; i < _editor.History.Count; i++)
+                    {
+                        var index = i;
+                        <button type="button" class="rounded border border-divider px-2 py-1 @(_editor.HistoryIndex == index ? "bg-primary/10 font-semibold" : "")"
+                                @onclick="() => JumpToHistory(index)">@(_editor.History[i])</button>
+                    }
+                </div>
+            </div>
+        }
+        @if (_isLoadingLandlord)
+        {
+            <p class="text-sm text-foreground-500">Зареждане на данните...</p>
+        }
+        else if (_current is null)
         {
             <p class="text-sm text-foreground-500">Изберете наемодател или добавете нов.</p>
         }
@@ -62,11 +95,12 @@
                         <TextField Placeholder="ID" Value="@_current.ID.ToString()" IsEnabled="false"
                                    Size="ThemeSize.Small"/>
                         <Select Placeholder="Фирма" Size="ThemeSize.Small" @bind-Value="_current.FIRM_ID"
-                                Items="@_firms" ValueField="@(x => x.firmID)" TextField="@(x => x.firmNAME)"/>
+                                Items="@_firms" ValueField="@(x => x.Id)" TextField="@(x => x.Name)"/>
                         <TextField Placeholder="Име" Size="ThemeSize.Small" @bind-Value="_current.NAME" ErrorMessage="@LandlordError("NAME")"/>
                         <TextField Placeholder="Презиме" Size="ThemeSize.Small" @bind-Value="_current.SURNAME" ErrorMessage="@LandlordError("SURNAME")"/>
                         <TextField Placeholder="Фамилия" Size="ThemeSize.Small" @bind-Value="_current.LASTNAME" ErrorMessage="@LandlordError("LASTNAME")"/>
-                        <LocationCascadeSelect @key="_current" RegionId="@_current.OBLAST"
+                        <LocationCascadeSelect @key="_current"
+                                               RegionId="@_current.OBLAST"
                                                RegionIdChanged="@(v => _current.OBLAST = v)"
                                                MunicipalityId="@_current.OBSTINA"
                                                MunicipalityIdChanged="@(v => _current.OBSTINA = v)"
@@ -102,7 +136,7 @@
                 <div class="min-w-0 overflow-x-auto">
                     <HtmlGrid TGridItem="PropertyDto" Items="@_current.IMOTIs.AsQueryable()" Hoverable="true" Striped="true"
                               Class="w-full">
-                        <PropertyColumn Property="@(i => i.imotiID)" Title="ID" Sortable="true"/>
+                        <PropertyColumn Property="@(i => i.Id)" Title="ID" Sortable="true"/>
                         <TemplateColumn Title="Област">
                             @if (_isPropertyEditMode)
                             {
@@ -111,7 +145,7 @@
                                         ValueField="@(x => x.ID)"
                                         TextField="@(x => x?.NAME)"
                                         TValue="int?"
-                                        TItem="EK_OBL"
+                                        TItem="Region"
                                         Value="@context.Item.EKATTE_AREA"
                                         ValueChanged="@(v => OnPropertyRegionChanged(context.Item, v))">
                                     <ChildContent>
@@ -133,7 +167,7 @@
                                         ValueField="@(x => x.ID)"
                                         TextField="@(x => x?.NAME)"
                                         TValue="int?"
-                                        TItem="EK_OBST"
+                                        TItem="Municipality"
                                         Value="@context.Item.EKATTE_MUNICIPALITY"
                                         ValueChanged="@(v => OnPropertyMunicipalityChanged(context.Item, v))">
                                     <ChildContent>
@@ -155,7 +189,7 @@
                                         ValueField="@(x => x.ID)"
                                         TextField="@(x => x?.NAME)"
                                         TValue="int?"
-                                        TItem="EKATTE"
+                                        TItem="Settlement"
                                         Value="@context.Item.EKATTE_CITY"
                                         ValueChanged="@(v => OnPropertySettlementChanged(context.Item, v))">
                                     <ChildContent>

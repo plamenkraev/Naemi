@@ -10,21 +10,21 @@ public class NaemZZDbContext : DbContext
     {
     }
 
-    public DbSet<NAEMODATELI> NAEMODATELIs => Set<NAEMODATELI>();
+    public DbSet<Landlord> NAEMODATELIs => Set<Landlord>();
 
-    public DbSet<IMOTI> IMOTIs => Set<IMOTI>();
+    public DbSet<Property> IMOTIs => Set<Property>();
 
     public DbSet<ContractTemplate> ContractTemplates => Set<ContractTemplate>();
 
-    public DbSet<FIRM> FIRM => Set<FIRM>();
+    public DbSet<Company> Company => Set<Company>();
 
-    public DbSet<EK_OBL> EK_OBL => Set<EK_OBL>();
+    public DbSet<Region> Region => Set<Region>();
 
-    public DbSet<EK_OBST> EK_OBST => Set<EK_OBST>();
+    public DbSet<Municipality> Municipality => Set<Municipality>();
 
-    public DbSet<EKATTE> EKATTE => Set<EKATTE>();
+    public DbSet<Settlement> Settlement => Set<Settlement>();
 
-    public DbSet<CATEGORI> CATEGORI => Set<CATEGORI>();
+    public DbSet<PropertyCategory> PropertyCategory => Set<PropertyCategory>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

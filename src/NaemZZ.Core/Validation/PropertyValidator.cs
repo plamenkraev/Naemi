@@ -5,7 +5,7 @@ using Tjt.Validators;
 
 namespace NaemZZ.Core.Validators;
 
-public sealed class PropertyValidator : BaseValidator<IMOTI>
+public sealed class PropertyValidator : BaseValidator<Property>
 {
     public PropertyValidator()
     {

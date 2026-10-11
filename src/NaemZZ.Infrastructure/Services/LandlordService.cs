@@ -8,132 +8,129 @@ using NaemZZ.Infrastructure.Data;
 
 namespace NaemZZ.Infrastructure.Services;
 
+/// <summary>Stateless persistence. No selected record, dirty flags or deletion queues.</summary>
 public sealed class LandlordService(IDbContextFactory<NaemZZDbContext> factory, IMapper mapper) : ILandlordService
 {
-    private List<LandlordDto> _landlords = [];
-    private readonly HashSet<int> _deletedLandlords = [];
-    private readonly HashSet<int> _deletedProperties = [];
-    public IReadOnlyList<LandlordDto> Landlords => _landlords;
-
-    public async Task LoadAsync(string? searchText = null, CancellationToken ct = default)
+    public async Task<IReadOnlyList<LandlordListDto>> GetListAsync(string? searchText = null, CancellationToken ct = default)
     {
         await using var db = await factory.CreateDbContextAsync(ct);
-        var query = db.NAEMODATELIs.AsNoTracking().Include(x => x.IMOTIs).AsQueryable();
+        var query = db.NAEMODATELIs.AsNoTracking();
         if (!string.IsNullOrWhiteSpace(searchText))
         {
-            var pattern = searchText.ToLower();
-            query = query.Where(x => x.NAME != null && x.NAME.ToLower().Contains(pattern));
+            var pattern = searchText.Trim();
+            query = query.Where(x => x.NAME != null && x.NAME.Contains(pattern));
         }
-        _landlords = mapper.Map<List<LandlordDto>>(await query.OrderBy(x => x.NAME).AsSplitQuery().ToListAsync(ct));
-        _deletedLandlords.Clear();
-        _deletedProperties.Clear();
+        return await query.OrderBy(x => x.NAME)
+            .Select(x => new LandlordListDto
+            {
+                ID = x.ID, NAME = x.NAME, SURNAME = x.SURNAME,
+                LASTNAME = x.LASTNAME, PropertyCount = x.IMOTIs.Count
+            }).ToListAsync(ct);
     }
 
-    public async Task<NAEMODATELI?> GetForContractAsync(int id, CancellationToken ct = default)
+    public async Task<LandlordDto?> GetAsync(int id, CancellationToken ct = default)
+    {
+        await using var db = await factory.CreateDbContextAsync(ct);
+        var entity = await db.NAEMODATELIs.AsNoTracking()
+            .Include(x => x.IMOTIs).AsSplitQuery()
+            .SingleOrDefaultAsync(x => x.ID == id, ct);
+        return entity is null ? null : mapper.Map<LandlordDto>(entity);
+    }
+
+    public async Task<Landlord?> GetForContractAsync(int id, CancellationToken ct = default)
     {
         await using var db = await factory.CreateDbContextAsync(ct);
         return await db.NAEMODATELIs.AsNoTracking()
-            .Include(x => x.IMOTIs).ThenInclude(x => x.CATEGORI)
-            .Include(x => x.IMOTIs).ThenInclude(x => x.EK_OBL)
-            .Include(x => x.IMOTIs).ThenInclude(x => x.EK_OBST)
-            .Include(x => x.IMOTIs).ThenInclude(x => x.EKATTE)
-            .Include(x => x.FIRM)
+            .Include(x => x.IMOTIs).ThenInclude(x => x.PropertyCategory)
+            .Include(x => x.IMOTIs).ThenInclude(x => x.Region)
+            .Include(x => x.IMOTIs).ThenInclude(x => x.Municipality)
+            .Include(x => x.IMOTIs).ThenInclude(x => x.Settlement)
+            .Include(x => x.Company)
             .SingleOrDefaultAsync(x => x.ID == id, ct);
     }
 
-    public LandlordDto AddNew()
+    private static void Validate(LandlordDto dto, IMapper mapper)
     {
-        var item = new LandlordDto { NAME = "[нов]" };
-        _landlords.Add(item);
-        return item;
+        if (BulgarianValidation.ValidateLandlord(mapper.Map<Landlord>(dto)).Count != 0 ||
+            dto.IMOTIs.Any(p => BulgarianValidation.ValidateProperty(mapper.Map<Property>(p)).Count != 0))
+            throw new ArgumentException("Невалидни данни за наемодател или имот.");
     }
 
-    public void Delete(LandlordDto item)
+    public async Task<LandlordDto> CreateAsync(LandlordDto dto, CancellationToken ct = default)
     {
-        if (item.ID != 0) _deletedLandlords.Add(item.ID);
-        _landlords.Remove(item);
-    }
-
-    public PropertyDto AddProperty(LandlordDto owner)
-    {
-        var item = new PropertyDto();
-        owner.IMOTIs.Add(item);
-        return item;
-    }
-
-    public void DeleteProperty(LandlordDto owner, PropertyDto item)
-    {
-        if (item.imotiID != 0) _deletedProperties.Add(item.imotiID);
-        owner.IMOTIs.Remove(item);
-    }
-
-    public void RestorePropertyDeletions(IEnumerable<int> ids)
-    {
-        foreach (var id in ids) _deletedProperties.Remove(id);
-    }
-
-    public async Task<SaveResult> SaveChangesAsync(CancellationToken ct = default)
-    {
-        foreach (var landlord in _landlords)
+        if (dto.ID != 0) throw new ArgumentException("Expected a new landlord.", nameof(dto));
+        Validate(dto, mapper);
+        await using var db = await factory.CreateDbContextAsync(ct);
+        var entity = mapper.Map<Landlord>(dto);
+        db.NAEMODATELIs.Add(entity);
+        var created = new List<Property>();
+        foreach (var p in dto.IMOTIs)
         {
-            if (BulgarianValidation.ValidateLandlord(mapper.Map<NAEMODATELI>(landlord)).Count > 0)
-                return SaveResult.Invalid(landlord);
-            foreach (var property in landlord.IMOTIs)
-                if (BulgarianValidation.ValidateProperty(mapper.Map<IMOTI>(property)).Count > 0)
-                    return SaveResult.Invalid(landlord);
+            var child = mapper.Map<Property>(p);
+            child.Landlord = entity;
+            db.IMOTIs.Add(child);
+            created.Add(child);
         }
-
-        try
+        await db.SaveChangesAsync(ct);
+        dto.ID = entity.ID;
+        var children = created;
+        // IDs of added children are returned by EF after SaveChanges.
+        for (var i = 0; i < dto.IMOTIs.Count; i++)
         {
-            await using var db = await factory.CreateDbContextAsync(ct);
-            await using var transaction = await db.Database.BeginTransactionAsync(ct);
-            if (_deletedLandlords.Count > 0)
-            {
-                var removed = await db.NAEMODATELIs.Where(x => _deletedLandlords.Contains(x.ID)).ToListAsync(ct);
-                db.NAEMODATELIs.RemoveRange(removed);
-            }
-            if (_deletedProperties.Count > 0)
-            {
-                var removed = await db.IMOTIs.Where(x => _deletedProperties.Contains(x.imotiID)).ToListAsync(ct);
-                db.IMOTIs.RemoveRange(removed);
-            }
-            foreach (var dto in _landlords)
-            {
-                NAEMODATELI entity;
-                if (dto.ID == 0)
-                {
-                    entity = mapper.Map<NAEMODATELI>(dto);
-                    db.NAEMODATELIs.Add(entity);
-                }
-                else
-                {
-                    entity = await db.NAEMODATELIs.SingleAsync(x => x.ID == dto.ID, ct);
-                    mapper.Map(dto, entity);
-                }
-                foreach (var property in dto.IMOTIs)
-                {
-                    if (property.imotiID == 0)
-                    {
-                        var added = mapper.Map<IMOTI>(property);
-                        added.NAEMODATELI = entity;
-                        db.IMOTIs.Add(added);
-                    }
-                    else
-                    {
-                        var stored = await db.IMOTIs.SingleAsync(x => x.imotiID == property.imotiID, ct);
-                        mapper.Map(property, stored);
-                    }
-                }
-            }
-            await db.SaveChangesAsync(ct);
-            await transaction.CommitAsync(ct);
-            await LoadAsync(null, ct);
-            return SaveResult.Ok();
+            dto.IMOTIs[i].Id = children[i].Id;
+            dto.IMOTIs[i].LandlordId = entity.ID;
         }
-        catch (Exception ex) when (ex is DbUpdateException or InvalidOperationException)
+        return dto;
+    }
+
+    public async Task UpdateAsync(LandlordDto dto, CancellationToken ct = default)
+    {
+        if (dto.ID <= 0) throw new ArgumentException("Expected an existing landlord.", nameof(dto));
+        Validate(dto, mapper);
+        await using var db = await factory.CreateDbContextAsync(ct);
+        await using var transaction = await db.Database.BeginTransactionAsync(ct);
+        var entity = await db.NAEMODATELIs.SingleAsync(x => x.ID == dto.ID, ct);
+        mapper.Map(dto, entity);
+        var stored = await db.IMOTIs.Where(x => x.LandlordId == dto.ID).ToListAsync(ct);
+        var incomingIds = dto.IMOTIs.Where(x => x.Id != 0).Select(x => x.Id).ToHashSet();
+        db.IMOTIs.RemoveRange(stored.Where(x => !incomingIds.Contains(x.Id)));
+        var byId = stored.ToDictionary(x => x.Id);
+        var additions = new List<(PropertyDto dto, Property entity)>();
+        foreach (var property in dto.IMOTIs)
         {
-            return SaveResult.Failed(ex.InnerException?.Message ?? ex.Message);
+            if (property.Id == 0)
+            {
+                var child = mapper.Map<Property>(property);
+                child.Landlord = entity;
+                db.IMOTIs.Add(child);
+                additions.Add((property, child));
+            }
+            else
+            {
+                if (!byId.TryGetValue(property.Id, out var child))
+                    throw new InvalidOperationException("Property does not belong to the selected landlord.");
+                mapper.Map(property, child);
+            }
+        }
+        await db.SaveChangesAsync(ct);
+        await transaction.CommitAsync(ct);
+        foreach (var (source, child) in additions)
+        {
+            source.Id = child.Id;
+            source.LandlordId = dto.ID;
         }
     }
-    public ValueTask DisposeAsync() => ValueTask.CompletedTask;
+
+    public async Task DeleteAsync(int id, CancellationToken ct = default)
+    {
+        if (id <= 0) return;
+        await using var db = await factory.CreateDbContextAsync(ct);
+        await using var transaction = await db.Database.BeginTransactionAsync(ct);
+        var children = await db.IMOTIs.Where(x => x.LandlordId == id).ToListAsync(ct);
+        db.IMOTIs.RemoveRange(children);
+        var entity = await db.NAEMODATELIs.SingleOrDefaultAsync(x => x.ID == id, ct);
+        if (entity is not null) db.NAEMODATELIs.Remove(entity);
+        await db.SaveChangesAsync(ct);
+        await transaction.CommitAsync(ct);
+    }
 }

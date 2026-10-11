@@ -10,5 +10,5 @@ namespace NaemZZ.Core.Interfaces;
 public interface IPrintingService
 {
     /// <summary>Shows the native print-preview window for the given landlord's contract.</summary>
-    Task ShowPrintPreviewAsync(NAEMODATELI landlord);
+    Task ShowPrintPreviewAsync(Landlord landlord);
 }

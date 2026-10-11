@@ -11,11 +11,11 @@ public sealed class FirmManagementService(IDbContextFactory<NaemZZDbContext> fac
     public async Task<IReadOnlyList<FirmDto>> ListAsync(CancellationToken ct = default)
     {
         await using var db = await factory.CreateDbContextAsync(ct);
-        return mapper.Map<List<FirmDto>>(await db.FIRM.AsNoTracking().OrderBy(x => x.firmNAME).ToListAsync(ct));
+        return mapper.Map<List<FirmDto>>(await db.Company.AsNoTracking().OrderBy(x => x.Name).ToListAsync(ct));
     }
     public async Task<FirmDto> SaveAsync(FirmDto firm, CancellationToken ct = default)
     {
-        if (string.IsNullOrWhiteSpace(firm.firmNAME))
+        if (string.IsNullOrWhiteSpace(firm.Name))
         {
             throw new ArgumentException("Името на фирмата е задължително.");
         }
@@ -27,16 +27,16 @@ public sealed class FirmManagementService(IDbContextFactory<NaemZZDbContext> fac
             throw new ArgumentException("Невалиден шаблон.");
         }
 
-        if (firm.firmID == 0)
+        if (firm.Id == 0)
         {
-            var created = mapper.Map<FIRM>(firm);
-            db.FIRM.Add(created);
+            var created = mapper.Map<Company>(firm);
+            db.Company.Add(created);
             await db.SaveChangesAsync(ct);
-            firm.firmID = created.firmID;
+            firm.Id = created.Id;
         }
         else
         {
-            var stored = await db.FIRM.SingleAsync(x => x.firmID == firm.firmID, ct);
+            var stored = await db.Company.SingleAsync(x => x.Id == firm.Id, ct);
             mapper.Map(firm, stored);
         }
         await db.SaveChangesAsync(ct);

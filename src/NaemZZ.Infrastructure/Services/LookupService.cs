@@ -7,7 +7,7 @@ using NaemZZ.Infrastructure.Data;
 namespace NaemZZ.Infrastructure.Services;
 
 /// <summary>
-/// Caches the small, rarely-changing lookup tables (FIRM, CATEGORI, EK_OBL, EK_OBST, EKATTE)
+/// Caches the small, rarely-changing lookup tables (Company, PropertyCategory, Region, Municipality, Settlement)
 /// in memory to avoid repeated round-trips for cascading dropdowns. Safe to register as a
 /// Singleton: each read uses a short-lived DbContext from the factory.
 /// </summary>
@@ -21,42 +21,42 @@ public class LookupService : ILookupService
         _factory = factory;
     }
 
-    public async Task<IReadOnlyList<FIRM>> GetFirmsAsync(CancellationToken ct = default) =>
+    public async Task<IReadOnlyList<Company>> GetFirmsAsync(CancellationToken ct = default) =>
         await GetOrAddAsync("firms", async () =>
         {
             await using var db = await _factory.CreateDbContextAsync(ct);
-            return await db.FIRM.AsNoTracking().OrderBy(f => f.firmNAME).ToListAsync(ct);
+            return await db.Company.AsNoTracking().OrderBy(f => f.Name).ToListAsync(ct);
         });
 
-    public async Task<IReadOnlyList<CATEGORI>> GetCategoriesAsync(CancellationToken ct = default) =>
+    public async Task<IReadOnlyList<PropertyCategory>> GetCategoriesAsync(CancellationToken ct = default) =>
         await GetOrAddAsync("categories", async () =>
         {
             await using var db = await _factory.CreateDbContextAsync(ct);
-            return await db.CATEGORI.AsNoTracking().OrderBy(c => c.NAME).ToListAsync(ct);
+            return await db.PropertyCategory.AsNoTracking().OrderBy(c => c.NAME).ToListAsync(ct);
         });
 
-    public async Task<IReadOnlyList<EK_OBL>> GetRegionsAsync(CancellationToken ct = default) =>
+    public async Task<IReadOnlyList<Region>> GetRegionsAsync(CancellationToken ct = default) =>
         await GetOrAddAsync("regions", async () =>
         {
             await using var db = await _factory.CreateDbContextAsync(ct);
-            return await db.EK_OBL.AsNoTracking().OrderBy(o => o.NAME).ToListAsync(ct);
+            return await db.Region.AsNoTracking().OrderBy(o => o.NAME).ToListAsync(ct);
         });
 
-    public async Task<IReadOnlyList<EK_OBST>> GetMunicipalitiesAsync(int regionId, CancellationToken ct = default) =>
+    public async Task<IReadOnlyList<Municipality>> GetMunicipalitiesAsync(int regionId, CancellationToken ct = default) =>
         await GetOrAddAsync($"municipalities:{regionId}", async () =>
         {
             await using var db = await _factory.CreateDbContextAsync(ct);
-            return await db.EK_OBST.AsNoTracking()
+            return await db.Municipality.AsNoTracking()
                 .Where(o => o.OBL_ID == regionId)
                 .OrderBy(o => o.NAME)
                 .ToListAsync(ct);
         });
 
-    public async Task<IReadOnlyList<EKATTE>> GetSettlementsAsync(int municipalityId, CancellationToken ct = default) =>
+    public async Task<IReadOnlyList<Settlement>> GetSettlementsAsync(int municipalityId, CancellationToken ct = default) =>
         await GetOrAddAsync($"settlements:{municipalityId}", async () =>
         {
             await using var db = await _factory.CreateDbContextAsync(ct);
-            return await db.EKATTE.AsNoTracking()
+            return await db.Settlement.AsNoTracking()
                 .Where(e => e.OBST_ID == municipalityId)
                 .OrderBy(e => e.NAME)
                 .ToListAsync(ct);

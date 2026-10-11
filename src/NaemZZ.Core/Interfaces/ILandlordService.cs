@@ -1,18 +1,18 @@
 using NaemZZ.Core.Dto;
 using NaemZZ.Core.Entities;
+
 namespace NaemZZ.Core.Interfaces;
-public interface ILandlordService : IAsyncDisposable
+
+public interface ILandlordService
 {
-    IReadOnlyList<LandlordDto> Landlords { get; }
-    Task LoadAsync(string? searchText = null, CancellationToken ct = default);
-    LandlordDto AddNew();
-    Task<NAEMODATELI?> GetForContractAsync(int id, CancellationToken ct = default);
-    void Delete(LandlordDto landlord);
-    PropertyDto AddProperty(LandlordDto landlord);
-    void DeleteProperty(LandlordDto landlord, PropertyDto property);
-    void RestorePropertyDeletions(IEnumerable<int> ids);
-    Task<SaveResult> SaveChangesAsync(CancellationToken ct = default);
+    Task<IReadOnlyList<LandlordListDto>> GetListAsync(string? searchText = null, CancellationToken ct = default);
+    Task<LandlordDto?> GetAsync(int id, CancellationToken ct = default);
+    Task<LandlordDto> CreateAsync(LandlordDto dto, CancellationToken ct = default);
+    Task UpdateAsync(LandlordDto dto, CancellationToken ct = default);
+    Task DeleteAsync(int id, CancellationToken ct = default);
+    Task<Landlord?> GetForContractAsync(int id, CancellationToken ct = default);
 }
+
 public sealed class SaveResult
 {
     public bool Success { get; init; }

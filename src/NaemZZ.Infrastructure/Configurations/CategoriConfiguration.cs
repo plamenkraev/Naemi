@@ -4,9 +4,9 @@ using NaemZZ.Core.Entities;
 
 namespace NaemZZ.Infrastructure.Configurations;
 
-public class CategoriConfiguration : IEntityTypeConfiguration<CATEGORI>
+public class CategoriConfiguration : IEntityTypeConfiguration<PropertyCategory>
 {
-    public void Configure(EntityTypeBuilder<CATEGORI> builder)
+    public void Configure(EntityTypeBuilder<PropertyCategory> builder)
     {
         builder.ToTable("CATEGORI");
         builder.HasKey(c => c.ID);

@@ -90,7 +90,7 @@
 
 @code {
     [CascadingParameter] public IDialogInstance DialogReference { get; set; } = null!;
-    [Parameter, EditorRequired] public NAEMODATELI Landlord { get; set; } = null!;
+    [Parameter, EditorRequired] public Landlord Landlord { get; set; } = null!;
 
     private TinyMceEditor? _editor;
     private static readonly (string Label, string Token)[] TemplateFields =

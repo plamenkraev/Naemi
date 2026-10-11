@@ -13,7 +13,7 @@ export function printHtml(html) {
 <html lang="bg">
 <head>
     <meta charset="utf-8">
-    <title>Договор за наем</title>
+    <title></title>
 
     <style>
         @page {

@@ -5,7 +5,7 @@ namespace NaemZZ.Core.Validation;
 
 /// <summary>
 /// Reproduces the exact validation rules found in the legacy EFDAL entity classes
-/// (NAEMODATELI / IMOTI <c>IDataErrorInfo</c> implementations), so that business
+/// (Landlord / Property <c>IDataErrorInfo</c> implementations), so that business
 /// behavior is preserved 1:1. Returns field name -> Bulgarian error message.
 /// </summary>
 public static class BulgarianValidation
@@ -14,7 +14,7 @@ public static class BulgarianValidation
     private static readonly Regex StreetRegex = new("^([0-9а-яА-Я '-.]+)$", RegexOptions.Compiled);
     private static readonly Regex DigitsOnlyRegex = new("^[0-9]+$", RegexOptions.Compiled);
 
-    public static IReadOnlyDictionary<string, string> ValidateLandlord(NAEMODATELI n)
+    public static IReadOnlyDictionary<string, string> ValidateLandlord(Landlord n)
     {
         var errors = new Dictionary<string, string>();
 
@@ -56,7 +56,7 @@ public static class BulgarianValidation
         return errors;
     }
 
-    public static IReadOnlyDictionary<string, string> ValidateProperty(IMOTI m)
+    public static IReadOnlyDictionary<string, string> ValidateProperty(Property m)
     {
         var errors = new Dictionary<string, string>();
 

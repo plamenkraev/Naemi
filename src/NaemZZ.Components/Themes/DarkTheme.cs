@@ -1,4 +1,4 @@
-﻿using Tjt.AspNetCore.Components.Enums;
+using Tjt.AspNetCore.Components.Enums;
 using Tjt.AspNetCore.WebAssembly.Theming;
 using Tjt.AspNetCore.WebAssembly.Theming.Components;
 

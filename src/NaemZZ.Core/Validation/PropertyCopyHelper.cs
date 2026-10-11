@@ -8,15 +8,15 @@ namespace NaemZZ.Core.Validation;
 /// </summary>
 public static class PropertyCopyHelper
 {
-    public static void CopyFields(IMOTI source, IMOTI target)
+    public static void CopyFields(Property source, Property target)
     {
-        target.EK_OBL = source.EK_OBL;
+        target.Region = source.Region;
         target.EKATTE_MUNICIPALITY = source.EKATTE_MUNICIPALITY;
         target.EKATTE_CITY = source.EKATTE_CITY;
         target.TERRAIN = source.TERRAIN;
         target.LIMITS = source.LIMITS;
         target.NOMER = source.NOMER;
-        target.CATEGORI = source.CATEGORI;
+        target.PropertyCategory = source.PropertyCategory;
         target.PLOST = source.PLOST;
     }
 }

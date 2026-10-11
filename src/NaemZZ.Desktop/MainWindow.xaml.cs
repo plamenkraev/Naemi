@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Components.WebView.Wpf;
+using Microsoft.AspNetCore.Components.WebView.Wpf;
 using System.Windows;
 
 namespace NaemZZ.Desktop;

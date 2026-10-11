@@ -7,5 +7,5 @@ public class ContractTemplate
     public string Name { get; set; } = "";
     public string Html { get; set; } = "";
     public string? LegacyRtfFile { get; set; }
-    public ICollection<FIRM> Firms { get; set; } = new List<FIRM>();
+    public ICollection<Company> Firms { get; set; } = new List<Company>();
 }

@@ -1,8 +1,4 @@
-@* Three cascading lookup dropdowns: Област (region) -> Община (municipality) -> Населено място (settlement).
-   Used both on the landlord detail form and inside each property grid row, since both NAEMODATELI
-   and IMOTI follow the exact same EK_OBL -> EK_OBST -> EKATTE hierarchy (just via different FK columns). *@
-
-<div class="flex flex-col gap-2 @Class">
+<div class="grid grid-cols-[repeat(auto-fit,minmax(min(100%,140px),1fr))] gap-2 [&>*]:min-w-0 @Class">
     <Select Placeholder="@(ShowLabels ? "Област" : null)"
             Size="ThemeSize.Small"
             Items="@_regions"
