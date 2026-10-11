@@ -1,6 +1,9 @@
 @page "/settings/templates"
 @inject IFirmManagementService Firms
+@inject IDialogService DialogService
 @using Tjt.Models
+@using NaemZZ.Components.Dialogs
+@using Tjt.AspNetCore.WebAssembly.Animation
 @inherits BaseDomComponent
 
 <Style>
@@ -17,6 +20,8 @@
             <Button Size="ThemeSize.Small" Variant="Variant.Solid" OnClick="@DuplicateTemplate"
                     IsEnabled="@(_selectedTemplate is not null)">Копирай шаблон
             </Button>
+            <Button Size="ThemeSize.Small" Variant="Variant.Flat" Color="PaletteColor.Error"
+                    IsEnabled="@(_selectedTemplate is not null)" OnClick="@DeleteTemplateAsync">Изтрий шаблона</Button>
             <Button Size="ThemeSize.Small" 
                     Color="PaletteColor.Primary"
                     OnClick="@SaveCommand.InvokeAsync"
@@ -29,30 +34,28 @@
 
     <PageAlert Class="my-2"></PageAlert>
 
+    <div class="flex flex-1 min-h-0 gap-3">
+        <aside class="w-64 shrink-0 min-h-0 overflow-y-auto rounded-lg border border-current-border bg-surface text-surface-foreground p-2">
+            <div class="font-semibold text-sm px-2 py-2">Шаблони (@_templates.Count)</div>
+            @foreach (var template in _templates)
+            {
+                <button type="button" @key="template.Id" @onclick="() => SelectTemplateAsync(template.Id)"
+                        class="block w-full text-left px-3 py-2 rounded-md text-sm mb-1 hover:bg-surface-muted @(_selectedId == template.Id ? "bg-surface-muted font-semibold" : "")">
+                    @template.Name
+                </button>
+            }
+            @if (_templates.Count == 0)
+            {
+                <p class="text-xs opacity-70 p-2">Няма записани шаблони.</p>
+            }
+        </aside>
+        <div class="flex flex-col flex-1 min-w-0 min-h-0">
     <LoadingIndicator Class="h-full flex flex-col gap-1" Initializing="@(_name is null)" Visible="@(IsLoading.Value)" FadeIn="true">
         <div class="flex flex-wrap gap-3 bg-surface text-surface-foreground items-end p-3 rounded-lg">
             <div class="flex-1 min-w-56">
                 <Field>
-                    <FieldLabel>@L["Избери шаблон"]</FieldLabel>
-                    <FieldBody>
-                        <Select Placeholder="Избери шаблон"
-                                Items="@_templates"
-                                TItem="ContractTemplate"
-                                TValue="int?"
-                                ValueField="@(x => x.Id)"
-                                TextField="@(x => x.Name)"
-                                Value="@_selectedId"
-                                ValueChanged="@SelectTemplateAsync"/>
-                    </FieldBody>
-                </Field>
-            </div>
-
-            <div class="flex-1 min-w-56">
-                <Field>
                     <FieldLabel>@L["Име на шаблона"]</FieldLabel>
-                    <FieldBody>
-                        <TextField Placeholder="Име на шаблона" @bind-Value="_name"/>
-                    </FieldBody>
+                    <FieldBody><TextField Placeholder="Име на шаблона" @bind-Value="_name"/></FieldBody>
                 </Field>
             </div>
         </div>
@@ -76,6 +79,8 @@
                            ClassName="contract-tinymce-editor h-full"/>
         </div>
     </LoadingIndicator>
+        </div>
+    </div>
 </div>
 
 
@@ -205,6 +210,36 @@
         }
 
         return Task.CompletedTask;
+    }
+
+    private async Task DeleteTemplateAsync()
+    {
+        if (_selectedTemplate is null) return;
+
+        var confirm = await DialogService.ShowMessageBox(
+            "Потвърждение",
+            $"Наистина ли искате да изтриете шаблона „{_selectedTemplate.Name}“? Фирмите, които го използват, ще останат без избран шаблон.",
+            yesText: "Изтрий", cancelText: "Откажи",
+            options: new DialogOptions { MaxWidth = "sm", CloseButton = true,
+                TransitionEnter = AnimateBook.ZoomEntrances.ZoomIn.Build() });
+        if (confirm != true) return;
+
+        try
+        {
+            var id = _selectedTemplate.Id;
+            var index = _templates.ToList().FindIndex(x => x.Id == id);
+            await Firms.DeleteTemplateAsync(id);
+            _templates = await Firms.ListTemplatesAsync();
+            if (_templates.Count > 0)
+                SetSelected(_templates[Math.Clamp(index, 0, _templates.Count - 1)]);
+            else
+                NewTemplate();
+            await NotificationService.Success("Шаблонът е изтрит.");
+        }
+        catch (Exception ex)
+        {
+            await HandleErrorAsync(ex);
+        }
     }
 
     private void SetSelected(ContractTemplate template)

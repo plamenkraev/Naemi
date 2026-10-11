@@ -103,6 +103,24 @@ public sealed class FirmManagementService(IDbContextFactory<NaemZZDbContext> fac
         return template;
     }
 
+    public async Task DeleteTemplateAsync(int id, CancellationToken ct = default)
+    {
+        await using var db = await factory.CreateDbContextAsync(ct);
+        await using var transaction = await db.Database.BeginTransactionAsync(ct);
+
+        await db.Companies.Where(x => x.ContractTemplateId == id)
+            .ExecuteUpdateAsync(s => s.SetProperty(x => x.ContractTemplateId, (int?)null), ct);
+
+        var template = await db.ContractTemplates.SingleOrDefaultAsync(x => x.Id == id, ct);
+        if (template is not null)
+        {
+            db.ContractTemplates.Remove(template);
+            await db.SaveChangesAsync(ct);
+        }
+        await transaction.CommitAsync(ct);
+        lookups.InvalidateCache();
+    }
+
     public async Task DeleteAsync(int id, CancellationToken ct = default)
     {
         await using var db = await factory.CreateDbContextAsync(ct);

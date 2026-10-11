@@ -7,5 +7,6 @@ public interface IFirmManagementService
     Task<FirmDto> SaveAsync(FirmDto firm, CancellationToken ct = default);
     Task<IReadOnlyList<ContractTemplate>> ListTemplatesAsync(CancellationToken ct = default);
     Task<ContractTemplate> SaveTemplateAsync(ContractTemplate template, CancellationToken ct = default);
+    Task DeleteTemplateAsync(int id, CancellationToken ct = default);
     Task DeleteAsync(int id, CancellationToken ct = default);
 }

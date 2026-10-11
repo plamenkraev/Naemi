@@ -9,7 +9,7 @@
 <div class="flex h-full min-h-0">
     <aside class="flex w-72 shrink-0 flex-col border-r border-divider bg-content1">
         <Field class="p-2">
-            <FieldLabel>Търсене по име</FieldLabel>
+            <FieldLabel>Търсене по имена</FieldLabel>
             <FieldBody>
                 <ThrottleInput ShowEndIcon="true" Placeholder="Търсене..." @bind-Value="SearchFilter.Value" />
             </FieldBody>
@@ -18,13 +18,24 @@
             @foreach (var landlord in _landlords)
             {
                 <button @key="landlord" type="button"
-                        class="block w-full border-b border-divider px-3 py-2 text-left text-sm hover:bg-content2 @(landlord.ID == _selectedLandlordId ? "bg-primary/10 font-semibold" : "")"
+                        class="@Css.Class("block w-full border-b border-divider px-3 py-2 text-left text-sm hover:bg-surface-subtle", ("bg-primary/10 font-semibold", landlord.ID == _selectedLandlordId), ("bg-warning/20", landlord.CompanyId is null))"
                         @onclick="() => Select(landlord)">
                     <span class="flex items-center justify-between gap-2">
                         <span class="min-w-0 truncate">@landlord.NAME @landlord.SURNAME @landlord.LASTNAME</span>
-                        <span class="shrink-0 rounded-full bg-content2 px-2 py-0.5 text-xs" title="Брой имоти">@landlord.PropertyCount</span>
+
+                        <div class="flex items-center gap-1">
+                            <Tooltip IsEnabled="@(landlord.CompanyId is null)" Text="Фирмата не е зададена">
+                                @if (landlord.CompanyId is null)
+                                {
+                                    <SvgInlineIcon class="text-warning" Svg="@BootstrapIcon.ExclamationCircle" />                                
+                                }
+                            </Tooltip>
+                            <span class="shrink-0 rounded-full bg-content2 px-2 py-0.5 text-xs" title="Брой имоти">@landlord.PropertyCount</span>
+                        </div>
+                        
                     </span>
                 </button>
+
             }
             @if (_landlords.Count == 0)
             {
@@ -95,7 +106,7 @@
                     @for (var i = 0; i < _editor.History.Count; i++)
                     {
                         var index = i;
-                        <button type="button" class="rounded border border-divider px-2 py-1 @(_editor.HistoryIndex == index ? "bg-primary/10 font-semibold" : "")"
+                        <button type="button" class="@Css.Class("rounded border border-divider px-2 py-1", ("bg-primary/10 font-semibold", _editor.HistoryIndex == index))"
                                 @onclick="() => JumpToHistory(index)">
                             @(_editor.History[i])
                         </button>

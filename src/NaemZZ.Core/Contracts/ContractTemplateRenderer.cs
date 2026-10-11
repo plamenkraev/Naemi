@@ -58,8 +58,11 @@ public static partial class ContractTemplateRenderer
                 Enc(values["Settlement"]) + ", общ. " + Enc(values["Municipality"]) +
                 ", обл. " + Enc(values["Region"]) + ", ЕКАТТЕ " +
                 Enc(values["EkatteCode"]) + ", местност " + Enc(values["Terrain"]) +
-                ", имот № " + Enc(values["Number"]) + ", при граници: " +
-                Enc(values["Limits"]) + ".</p>";
+               ", имот № " + Enc(values["Number"]) +
+                (!string.IsNullOrWhiteSpace(values["Limits"])
+                    ? ", при граници: " + Enc(values["Limits"])
+                    : "") +
+                ".</p>";
         }));
 
         // Expand legacy repeat blocks before HTML parsing. The repeat block is a

@@ -6,6 +6,7 @@ public sealed class LandlordListDto
     public string? NAME { get; set; }
     public string? SURNAME { get; set; }
     public string? LASTNAME { get; set; }
+    public int? CompanyId { get; set; }
     public int PropertyCount { get; set; }
 }
 

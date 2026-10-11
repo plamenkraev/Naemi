@@ -12,7 +12,7 @@ namespace NaemZZ.Infrastructure.Services;
 /// <summary>Stateless persistence. No selected record, dirty flags or deletion queues.</summary>
 public sealed class LandlordService(IDbContextFactory<NaemZZDbContext> factory, IMapper mapper) : ILandlordService
 {
-    public async Task<IReadOnlyList<LandlordListDto>> GetListAsync(string? searchText = null, CancellationToken ct = default)
+    public async Task<IReadOnlyList<LandlordListDto>> GetListAsync( string? searchText = null, CancellationToken ct = default)
     {
         await using var db = await factory.CreateDbContextAsync(ct);
 
@@ -25,19 +25,28 @@ public sealed class LandlordService(IDbContextFactory<NaemZZDbContext> factory, 
                 NAME = x.NAME,
                 SURNAME = x.SURNAME,
                 LASTNAME = x.LASTNAME,
+                CompanyId = x.FIRM_ID,
                 PropertyCount = x.IMOTIs.Count
             })
             .ToListAsync(ct);
 
         if (!string.IsNullOrWhiteSpace(searchText))
         {
-            var search = searchText.Trim();
+            var terms = searchText.Split(
+             ' ',
+             StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
 
-            landlords = [.. landlords
-                    .Where(x => x.NAME?.Contains( search, StringComparison.CurrentCultureIgnoreCase) == true
-                            ||  x.SURNAME?.Contains( search, StringComparison.CurrentCultureIgnoreCase) == true
-                            ||  x.LASTNAME?.Contains( search, StringComparison.CurrentCultureIgnoreCase) == true)
-                ];
+            landlords = landlords
+                .Where(x =>
+                {
+                    var fullName = $"{x.NAME} {x.SURNAME} {x.LASTNAME}";
+
+                    return terms.All(term =>
+                        fullName.Contains(
+                            term,
+                            StringComparison.CurrentCultureIgnoreCase));
+                })
+                .ToList();
         }
 
         return landlords;
