@@ -1,0 +1,88 @@
+@page "/settings/companies"
+@using System.Extensions
+@using System.Extensions.Collections.Generic
+@using NaemZZ.Core.Dto
+@using NaemZZ.Components.Dialogs
+
+@inject IFirmManagementService Firms
+@inject IDialogService DialogService
+@inherits BaseDomComponent
+
+<div class="flex flex-col gap-4 p-4 overflow-auto h-full">
+    <div class="flex items-center justify-between">
+        <h1 class="text-lg font-semibold">Фирми</h1>
+        <Button Color="PaletteColor.Primary" OnClick="@(() => EditAsync(null))">Добави фирма</Button>
+    </div>
+     
+     <PageAlert Class="my-2"></PageAlert>
+    
+    <Card Classes="@(new(){ Base = "h-full", Body = "flex flex-col gap-2"})">
+        <CardHeader>
+            <Field class="p-2 w-full">
+                <FieldLabel>@L["Търсене по име"]</FieldLabel>
+                <FieldBody>
+                    <ThrottleInput ShowEndIcon="true" Placeholder="Търсене..." @bind-Value="_search"/>
+                </FieldBody>
+        </Field>
+        </CardHeader>
+        <CardContent>
+             @foreach (var company in _companies.WhereIIf(!_search.IIsNullOrEmpty(), w=> w.firmNAME?.Contains(_search, StringComparison.OrdinalIgnoreCase) is true))
+            {
+                <div class="flex items-center justify-between gap-3 rounded-lg border border-current-border p-3" @key="company.firmID">
+                    <div>
+                        <div class="font-semibold">@company.firmNAME</div>
+                        <div class="text-sm opacity-70">@company.BULSTAT · @company.firmADDRESS</div>
+                        <div class="text-xs opacity-70">Шаблон: @(_templates.FirstOrDefault(x => x.Id == company.ContractTemplateId)?.Name ?? "По подразбиране")</div>
+                    </div>
+                    <Button Size="ThemeSize.Small" Variant="Variant.Flat" OnClick="@(() => EditAsync(company))">Редакция</Button>
+                </div>
+            }
+        </CardContent>
+       
+    </Card>
+</div>
+
+@code {
+    private IReadOnlyList<FirmDto> _companies = [];
+    private IReadOnlyList<ContractTemplate> _templates = [];
+    private string? _search;
+    
+    protected override async Task OnInitializedAsync() => await ReloadAsync();
+    
+    private async Task ReloadAsync()
+    {
+        _companies = await Firms.ListAsync();
+        _templates = await Firms.ListTemplatesAsync();
+    }
+    
+    private async Task EditAsync(FirmDto? company)
+    {
+        AlertManager.Alerts.Clear();
+        
+        var copy = company is null ? new FirmDto() : new FirmDto
+        {
+            firmID = company.firmID, firmNAME = company.firmNAME, firmADDRESS = company.firmADDRESS,
+            BULSTAT = company.BULSTAT, firmMOL = company.firmMOL, firmEGN = company.firmEGN,
+            firmLK = company.firmLK, firmLKDATE = company.firmLKDATE, firmMVR = company.firmMVR,
+            ContractTemplateId = company.ContractTemplateId
+        };
+        var dialog = await DialogService.ShowAsync<CompanyDialog>(
+            company is null ? "Нова фирма" : "Редакция на фирма",
+            new DialogParameters { [nameof(CompanyDialog.Company)] = copy }, new DialogOptions());
+        
+        var result = await dialog.Result;
+        
+        if (result is { Cancelled: false, Data: FirmDto edited })
+        {
+            try
+            {
+                await Firms.SaveAsync(edited);
+                await ReloadAsync();
+            }
+            catch (Exception ex)
+            {
+               await AlertErrorAsync(ex);
+            }
+        }
+    }
+}

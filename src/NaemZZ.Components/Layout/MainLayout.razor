@@ -1,0 +1,29 @@
+@inherits Tjt.AspNetCore.Components.BaseLayoutComponent
+
+<div class="flex h-screen w-screen flex-col overflow-hidden bg-background text-foreground">
+    <header class="flex shrink-0 items-center justify-between gap-3 border-b border-divider bg-appbar-background text-appbar-foreground px-4 py-2">
+        <a href="/" class="text-lg font-semibold">Договори за наем</a>
+        <nav class="flex items-center gap-4 text-sm" aria-label="Основно меню">
+            <a href="/">Наемодатели</a>
+
+            <Dropdown
+                Class="mt-2 flex min-w-48">
+                <DropdownTrigger Context="opened">
+                    <span class="cursor-pointer select-none">Настройки</span>
+                </DropdownTrigger>
+                <DropdownMenu>
+                    <DropdownItem OnClick="@(x => Navigation.NavigateTo("/settings/companies"))">
+                        @L["Фирми"]
+                    </DropdownItem>
+                    <DropdownItem OnClick="@(x => Navigation.NavigateTo("/settings/templates"))">
+                        @L["Шаблони на договори"]
+                    </DropdownItem>
+                </DropdownMenu>
+            </Dropdown>
+
+            <SwitchThemeMode/>
+
+        </nav>
+    </header>
+    <main class="flex min-h-0 flex-1 flex-col overflow-hidden">@Body</main>
+</div>

@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="bg">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Договори за наем</title>
+    <base href="/" />
+    <link rel="stylesheet" href="css/app.min.css" />
+    <link href="_content/BlazorDatasheet/sheet-styles.css" rel="stylesheet"/>
+    
+    <style>
+        @font-face {
+            font-family: 'CourierNew';
+            src: url('fonts/Courier-New.ttf') format("truetype");
+        }
+
+        @font-face {
+            font-family: 'Lato';
+            src: url('fonts/Lato-Light.ttf') format("truetype");
+        }
+
+        @font-face {
+            font-family: 'LatoBold';
+            src: url('fonts/Lato-Bold.ttf') format("truetype");
+        }
+
+        @font-face {
+            font-family: 'Merriweather';
+            src: url('fonts/Merriweather-Black.ttf') format("truetype");
+        }
+
+        @font-face {
+            font-family: 'MerriweatherBold';
+            src: url('fonts/Merriweather-Bold.ttf') format("truetype");
+        }
+
+        @font-face {
+            font-family: 'Montserrat';
+            src: url('fonts/Montserrat-Black.ttf') format("truetype");
+        }
+
+        @font-face {
+            font-family: 'MontserratBold';
+            src: url('fonts/Montserrat-Bold.ttf') format("truetype");
+        }
+
+        @font-face {
+            font-family: 'OpenSansCondensed';
+            src: url('fonts/OpenSans_Condensed-Regular.ttf') format("truetype");
+        }
+
+        @font-face {
+            font-family: 'OpenSansCondensedBold';
+            src: url('fonts/OpenSans_Condensed-Bold.ttf') format("truetype");
+        }
+
+        @font-face {
+            font-family: 'OpenSans';
+            src: url('fonts/OpenSans-Regular.ttf') format("truetype");
+        }
+
+        @font-face {
+            font-family: 'OpenSansBold';
+            src: url('fonts/OpenSans-Bold.ttf') format("truetype");
+        }
+
+        @font-face {
+            font-family: 'PlayfairDisplay';
+            src: url('fonts/PlayfairDisplay-Regular.ttf') format("truetype");
+        }
+
+        @font-face {
+            font-family: 'PlayfairDisplayBold';
+            src: url('fonts/PlayfairDisplay-Bold.ttf') format("truetype");
+        }
+
+        @font-face {
+            font-family: 'Roboto-Bold';
+            src: url('fonts/Roboto-Bold.ttf') format("truetype");
+        }
+
+        @font-face {
+            font-family: 'Roboto-Light';
+            src: url('fonts/Roboto-Light.ttf') format("truetype");
+        }
+
+        @font-face {
+            font-family: 'Roboto-Regular';
+            src: url('fonts/Roboto-Regular.ttf') format("truetype");
+        }
+
+        @font-face {
+            font-family: 'Roboto-Medium';
+            src: url('fonts/Roboto-Medium.ttf') format("truetype");
+        }
+
+        #app-splash {
+            position: fixed;
+            inset: 0;
+            z-index: 99999;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #000;
+            opacity: 1;
+            transition: opacity 350ms ease;
+        }
+
+        #app-splash img {
+            max-width: 260px;
+            width: 60%;
+            height: auto;
+            object-fit: contain;
+        }
+
+        #app-splash.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+    </style>
+</head>
+<body>
+    <div id="app" class="h-screen w-full p-0 m-0 min-h-1"></div>
+
+    <!-- Splash screen -->
+    <div id="app-splash">
+        <img src="img/logo.png" alt="НаемZZ" />
+    </div>
+
+    
+    <div id="blazor-error-ui">
+        Възникна неочаквана грешка.
+        <a href="" class="reload">Презареди</a>
+        <a class="dismiss">🗙</a>
+    </div>
+
+    <script>
+        window.appSplash = {
+            startedAt: Date.now(),
+
+            hide: async function () {
+                const elapsed = Date.now() - this.startedAt;
+                const remaining = Math.max(0, 3000 - elapsed);
+
+                if (remaining > 0) {
+                    await new Promise(resolve => setTimeout(resolve, remaining));
+                }
+
+                const splash = document.getElementById("app-splash");
+
+                if (splash) {
+                    splash.classList.add("hidden");
+
+                    setTimeout(() => splash.remove(), 350);
+                }
+            }
+        };
+    </script>
+    <script src="_framework/blazor.webview.js"></script>
+</body>
+</html>

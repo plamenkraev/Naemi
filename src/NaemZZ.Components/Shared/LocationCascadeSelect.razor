@@ -1,0 +1,34 @@
+@* Three cascading lookup dropdowns: Област (region) -> Община (municipality) -> Населено място (settlement).
+   Used both on the landlord detail form and inside each property grid row, since both NAEMODATELI
+   and IMOTI follow the exact same EK_OBL -> EK_OBST -> EKATTE hierarchy (just via different FK columns). *@
+
+<div class="flex flex-col gap-2 @Class">
+    <Select Placeholder="@(ShowLabels ? "Област" : null)"
+            Size="ThemeSize.Small"
+            Items="@_regions"
+            @bind-Value="@RegionId"
+            ValueField="@(x => x.ID)"
+            TextField="@(x => x?.NAME)"
+            @bind-Value:after="OnRegionChangedAsync">
+    </Select>
+
+    <Select Placeholder="@(ShowLabels ? "Община" : null)"
+            Size="ThemeSize.Small"
+            Items="@_municipalities"
+            IsEnabled="@(RegionId is not null)"
+            ValueField="@(x=> x.ID)"
+            TextField="@(x => x?.NAME)"
+            @bind-Value="@MunicipalityId"
+            @bind-Value:after="OnMunicipalityChangedAsync">
+    </Select>
+
+    <Select Placeholder="@(ShowLabels ? "Населено място" : null)"
+            Size="ThemeSize.Small"
+            Items="@_settlements"
+            IsEnabled="@(MunicipalityId is not null)"
+            TextField="@(x => x?.NAME)"
+            ValueField="@(x => x.ID)"
+            @bind-Value="@SettlementId"
+            @bind-Value:after="OnSettlementChangedAsync">
+    </Select>
+</div>

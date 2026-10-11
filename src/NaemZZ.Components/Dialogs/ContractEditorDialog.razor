@@ -1,0 +1,274 @@
+@using Microsoft.Extensions.Logging
+@inject IContractDocumentService Documents
+@inject IFirmManagementService Firms
+@inherits BaseDomComponent
+
+<Style>
+    .html-editor .tox-tinymce {
+        border: none;
+        border-radius: 0;
+    }
+
+    .html-editor textarea {
+        display: none;
+    }
+
+    .tox-tinymce-aux,
+    .tox-menu,
+    .tox-dialog-wrap,
+    .tox-silver-sink {
+        z-index: 2147483647 !important;
+    }
+</Style>
+
+<Dialog>
+    <ChildContent>
+        @if (_loading)
+        {
+            <p class="p-6">Зареждане на договора...</p>
+        }
+        else if (_error is not null)
+        {
+            <p class="p-6 text-danger">@_error</p>
+        }
+        else
+        {
+            <div class="flex flex-col gap-3 min-h-0 h-full">
+                <div class="flex flex-wrap items-center justify-between gap-2">
+                    <div>
+                        <h2 class="font-semibold">@(_editingTemplate ? "Редакция на шаблон" : "Договор за наем")</h2>
+                        <p class="text-sm opacity-70">@_template!.Name</p>
+                    </div>
+                    <div class="flex flex-wrap gap-2">
+                        @if (!_editingTemplate)
+                        {                           
+                            <Button Size="ThemeSize.Small"
+                                    Variant="Variant.Flat"
+                                    OnClick="@EditTemplateAsync">
+                                Редакция на шаблон
+                            </Button>
+
+                            <Button Size="ThemeSize.Small"
+                                    Color="PaletteColor.Primary"
+                                    OnClick="@PrintAsync">
+                                Печат
+                            </Button>
+                        }
+                        else
+                        {
+                            <Button Size="ThemeSize.Small" Variant="Variant.Flat" OnClick="@BackToContractAsync">Назад</Button>
+                            <Button Size="ThemeSize.Small" Color="PaletteColor.Primary" OnClick="@SaveTemplateAsync">Запази шаблона</Button>
+                        }
+                        <Button Size="ThemeSize.Small" Variant="Variant.Flat" OnClick="@(DialogReference.CancelAsync)">Затвори</Button>
+                    </div>
+                </div>
+                @if (_editingTemplate)
+                {
+                    <div class="text-xs opacity-70">Редактирайте текста директно. За динамични данни използвайте бутоните по-долу. Запазването променя бъдещите договори.</div>
+                    <div class="flex flex-wrap items-center gap-2 rounded-lg border border-divider p-2">
+                        <span class="text-xs font-semibold">Вмъкни поле:</span>
+                        @foreach (var field in TemplateFields)
+                        {
+                            <Button Size="ThemeSize.Small" Variant="Variant.Flat" OnClick="@(() => InsertField(field.Token))">@field.Label</Button>
+                        }
+                    </div>
+                    <TextField Placeholder="Име на шаблона" @bind-Value="_templateName" />
+                }
+
+                <div class="min-h-[420px] h-full rounded-lg border border-divider bg-white text-black p-4">
+                    <TinyMceEditor @key="_editorKey" 
+                                   @ref="_editor"
+                                   @bind-Value="EditorHtml"
+                                   Conf="@_editorConfig"
+                                   ScriptSrc="@(Navigation.ToAbsoluteUri("libs/tinymce/tinymce.min.js").ToString())"
+                                   ClassName="contract-tinymce-editor h-full" />
+                </div>
+            </div>
+        }
+    </ChildContent>
+</Dialog>
+
+@code {
+    [CascadingParameter] public IDialogInstance DialogReference { get; set; } = null!;
+    [Parameter, EditorRequired] public NAEMODATELI Landlord { get; set; } = null!;
+
+    private TinyMceEditor? _editor;
+    private static readonly (string Label, string Token)[] TemplateFields =
+    [
+        ("Име на фирма", "{{Firm.Name}}"),
+        ("ЕИК / БУЛСТАТ", "{{Firm.Bulstat}}"),
+        ("Адрес на фирма", "{{Firm.Address}}"),
+        ("Представител", "{{Firm.Representative}}"),
+        ("Три имена", "{{Landlord.FullName}}"),
+        ("ЕГН", "{{Landlord.EGN}}"),
+        ("Адрес на наемодател", "{{Landlord.Address}}"),
+        ("Дата", "{{Contract.Date}}"),
+        ("Година", "{{Contract.Year}}"),
+        ("Списък с имоти", "{{Properties.List}}")
+    ];
+    private void InsertField(string token) => _editor?.InsertContent(token);
+
+    private ContractTemplate? _template;
+    private string _templateName = "";
+    private string _contractHtml = "";
+    private string _templateHtml = "";
+    private string? _error;
+    private bool _loading = true;
+    private bool _editingTemplate;
+    private int _editorKey;
+    private IJSObjectReference? _printModule;
+
+    // TinyMceEditor exposes Value/ValueChanged, not GetHtmlAsync/SetHtmlAsync.
+    // Keep the two editing buffers separate so template changes don't overwrite a contract.
+    private string EditorHtml
+    {
+        get => _editingTemplate ? _templateHtml : _contractHtml;
+        set
+        {
+            if (_editingTemplate) _templateHtml = value;
+            else _contractHtml = value;
+        }
+    }
+
+    private readonly Dictionary<string, object> _editorConfig = new()
+    {
+        ["height"] = "100%",
+        ["menubar"] = "file edit view insert format tools table",
+        ["plugins"] = "advlist autolink lists link charmap preview anchor searchreplace visualblocks code fullscreen insertdatetime table wordcount pagebreak",
+        ["toolbar"] = "undo redo | blocks fontfamily fontsize | bold italic underline strikethrough | forecolor backcolor | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | table pagebreak | removeformat code fullscreen",
+        ["toolbar_mode"] = "wrap",
+        ["promotion"] = false,
+        ["branding"] = false,
+        ["language"] = "bg_BG",
+        ["language_url"] = "/libs/tinymce/langs/bg_BG.js",
+        ["content_style"] = """
+    html, body {
+        background: white;
+    }
+
+    body {
+        font-family: 'Book Antiqua', 'Times New Roman', serif;
+        font-size: 11pt;
+        line-height: 1.25;
+        color: #000;
+        margin: 15mm;
+    }
+
+    p {
+        margin: 0 0 10px;
+        min-height: 1.25em;
+    }
+
+    p.contract-property {
+        margin: 0 0 8px;
+        line-height: 1.3;
+        text-align: justify;
+    }
+
+    h1, h2, h3 {
+        break-after: avoid;
+    }
+
+    table {
+        border-collapse: collapse;
+    }
+    """,
+
+        ["font_family_formats"] =
+    "Book Antiqua=Book Antiqua,serif;" +
+    "Times New Roman=Times New Roman,serif;" +
+    "Arial=Arial,sans-serif",
+
+        ["font_size_formats"] = "10pt 11pt 12pt 14pt 16pt 18pt 20pt",
+        // Keep original inline styles, classes and table attributes where possible.
+        ["valid_elements"] = "*[*]",
+        ["extended_valid_elements"] = "span[*],div[*],table[*],tr[*],td[*],th[*],p[*]",
+        ["convert_urls"] = false,
+
+    };
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            var doc = await Documents.LoadAsync(Landlord);
+            _template = doc.Template;
+            _templateName = _template.Name;
+            _templateHtml = _template.Html;
+            _contractHtml = doc.Html;
+        }
+        catch (Exception ex) { _error = ex.Message; }
+        finally { _loading = false; }
+    }
+
+    private Task EditTemplateAsync()
+    {
+        _editingTemplate = true;
+        _editorKey++; // Recreate TinyMCE with the template's HTML.
+        return Task.CompletedTask;
+    }
+
+    private Task BackToContractAsync()
+    {
+        _editingTemplate = false;
+        _editorKey++; // Recreate TinyMCE with the individual contract's HTML.
+        return Task.CompletedTask;
+    }
+
+    private async Task SaveTemplateAsync()
+    {
+        if (_template is null)
+            return;
+
+        try
+        {
+            var saved = await Firms.SaveTemplateAsync(new ContractTemplate
+            {
+                Id = _template.Id,
+                Name = _templateName,
+                Html = _templateHtml,
+                LegacyRtfFile = _template.LegacyRtfFile
+            });
+
+            _template = saved;
+            _templateName = saved.Name;
+            _templateHtml = saved.Html;
+
+            // Reload the contract using the selected template.
+            var updated = await Documents.LoadAsync(Landlord);
+
+            _contractHtml = updated.Html;
+
+            _editingTemplate = false;
+            _editorKey++;
+        }
+        catch (Exception ex)
+        {
+            _error = ex.Message;
+        }
+    }
+
+    private async Task PrintAsync()
+    {
+        _printModule ??= await JSRunner.JsInvokeAsync<IJSObjectReference>("import", "./js/contract-print.js");
+        await _printModule.InvokeVoidAsync("printHtml", _contractHtml);
+    }
+
+    protected override ValueTask DisposeAsync(bool disposing)
+    {
+        if (disposing && _printModule is not null)
+        {
+            try
+            {
+                _ = _printModule.DisposeAsync();
+                _printModule = null;
+            }
+            catch (Exception ex)
+            {
+               Logger.LogError(ex, "Error disposing print module");
+            }
+           
+        }
+        return base.DisposeAsync(disposing);
+    }
+}

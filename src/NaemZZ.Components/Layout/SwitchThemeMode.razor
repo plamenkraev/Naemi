@@ -1,0 +1,87 @@
+@using Blazicons
+@using NaemZZ.Components.Themes
+@using Tjt.AspNetCore.Components
+@using Tjt.AspNetCore.Components.Web
+@inherits BaseDomComponent
+
+<RadioGroup @bind-Value="_selected" @bind-Value:after="OnThemeChanged">
+    <RadioGroupLabel class="sr-only">Theme</RadioGroupLabel>
+
+    <div class="inline-grid auto-cols-max grid-flow-col gap-1 rounded-full bg-current/10 p-1">
+
+        @foreach (var themeName in new[] { LightTheme.Name, DarkTheme.Name })
+        {
+            <RadioGroupOption @key="themeName"
+                              AsComponent="typeof(Render)"
+                              Value="themeName"
+                              Context="option">
+
+                <div @ref="option.RefBack.Current"
+                     @attributes="option.RenderAttributes"
+                     class="@Css.Class(
+                        "relative flex items-center justify-center rounded-full p-2 cursor-pointer transition",
+                        option.IsChecked
+                            ? "bg-primary/70 text-primary-foreground ring ring-primary/10"
+                            : "text-current/80"
+                    )">
+                  
+                    @if (themeName == "System")
+                    {
+                        <SvgInlineIcon Svg="GoogleMaterialRoundIcon.Monitor" />
+                    }
+                    else if (themeName == LightTheme.Name)
+                    {
+                        <SvgInlineIcon Svg="BootstrapIcon.Sun" />
+                    }
+                    else if (themeName == DarkTheme.Name)
+                    {
+                        <SvgInlineIcon Svg="BootstrapIcon.MoonStars" />
+                    }
+
+                </div>
+
+            </RadioGroupOption>
+        }
+    </div>
+</RadioGroup>
+
+@code {
+    [Inject] private ILocalStorageService Storage { get; set; } = default!;
+
+    private string _selected = default!;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _selected = ThemingManager.CurrentTheme.GetName();
+
+        ThemingManager.CurrentThemeObservable.Subscribe(theme =>
+        {
+            _selected = theme.GetName();
+            StateHasChanged();
+        }).DisposeWith(this);
+
+        await base.OnInitializedAsync();
+    }
+
+    private async Task OnThemeChanged()
+    {
+        try
+        {
+            await Storage.SetAsync("__theme", _selected,
+                new LocalStorageOptions
+                {
+                    AbsoluteExpiration = DateTimeOffset.UtcNow.AddDays(30)
+                });
+            await ThemingManager.ChangeTheme(_selected, JSRunner);
+
+            ThemingManager.CurrentThemeObservable.ForceNotify();
+
+            StateHasChanged();
+
+        }
+        catch (Exception ex)
+        {
+            await HandleErrorAsync(ex);
+        }
+    }
+}

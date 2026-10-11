@@ -1,0 +1,116 @@
+@namespace NaemZZ.Components
+@using Microsoft.AspNetCore.Components.Authorization
+@using Microsoft.Extensions.DependencyInjection
+@using Microsoft.Extensions.Logging
+@using Microsoft.Extensions.Options
+@using NaemZZ.Components.Pages
+@using R3
+@using Tjt
+@using Tjt.AspNetCore.Components.Web.DependencyInjection
+@using Tjt.AspNetCore.WebAssembly.Theming.Routing
+@using Tjt.State.Flux.Components
+@using Tjt.Modularity
+
+<StoreInitializer />
+<StyleRoot />
+<LayerHost />
+<DialogProvider Class="bg-surface" CloseButton="true" MaxWidth="@("xl")" Position="DialogPosition.Center" />
+<DrawerContainer />
+<Notification />
+<PageProgressProvider />
+<LazyImagePreviewContainer />
+<ThemeProvider Theme="ThemingManager.CurrentTheme" DefaultScrollbar="true" Elements="new()"></ThemeProvider>
+<LayoutHookProvider Name="@LayoutHooks.Header.First"></LayoutHookProvider>
+<ApplicationLoadingIndicator />
+<AppStyles Lazy="true" Loaded="StyleLoaded"></AppStyles>
+<AppScripts Lazy="true" Loaded="ScriptLoaded"></AppScripts>
+
+@if (_initialized && _styleLoaded && _scriptLoaded)
+{
+    <Router AppAssembly="RouterOptions.Value.AppAssembly" 
+            AdditionalAssemblies="RouterOptions.Value.AdditionalAssemblies" NotFoundPage="@typeof(NotFoundPage)">
+        <Found Context="routeData">
+            <AuthorizeRouteView RouteData="@routeData" DefaultLayout="@(typeof(MainLayout))">
+                <NotAuthorized>
+                    
+                </NotAuthorized>
+
+                <Authorizing>
+                    <div class="main-content-full">
+                        <div class="flex flex-col justify-center my-5">
+                            <div class="loader">
+                                <CircleFade Color="primary" Size="60px" Center="true" />
+                            </div>
+                        </div>
+                    </div>
+                </Authorizing>
+            </AuthorizeRouteView>
+        </Found>
+    </Router>
+}
+
+@code {
+    [Inject] IModuleEngine Application { get; set; } = null!;
+    [Inject] IServiceProvider ServiceProvider { get; set; }= null!;
+    [Inject] private IThemeManager ThemingManager { get; set; } = null!;
+    [Inject] IOptions<RouterOptions> RouterOptions{ get; set; } = null!;
+    [Inject] IJSRuntime JS { get; set; } = null!;
+    [Inject] ILogger<App> Logger { get; set; } = null!;
+    
+    private readonly CompositeDisposable _disposable = new();
+    private bool _initialized;
+    private bool _styleLoaded = false;
+    private bool _scriptLoaded = false;
+    private bool _splashHidden;
+    
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            //TODO: Find where we can run this before razor loaded
+            ((ComponentsClientScopeServiceProviderAccessor)ServiceProvider
+             .GetRequiredService<IClientScopeServiceProviderAccessor>()).ServiceProvider = ServiceProvider;
+
+            await Application.InitializeAsync(ServiceProvider);
+            await ((IModuleStartup)Application).StartAsync();
+
+             await ThemingManager.InitializeAsync(null);
+
+             ThemingManager.CurrentThemeObservable
+                 .Subscribe(_ => InvokeAsync(StateHasChanged))
+                 .DisposeWith(_disposable);
+             
+             _initialized = true;
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "An error occurred while initializing the application");
+        }
+
+        await base.OnInitializedAsync();
+    } 
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender && !_splashHidden)
+        {
+            _splashHidden = true;
+            await JS.InvokeVoidAsync("appSplash.hide");
+        }
+    }
+
+    private void StyleLoaded()
+    {
+        _styleLoaded = true;
+    }
+
+    private void ScriptLoaded()
+    {
+        _scriptLoaded = true;
+    }
+
+    public void Dispose()
+    {
+        _disposable?.Dispose();
+    }
+}

@@ -1,0 +1,226 @@
+@using NaemZZ.Core.Entities
+@inject IFirmManagementService Firms
+@inherits BaseDomComponent
+
+<Style>
+    .tox-tinymce-aux, .tox-menu, .tox-dialog-wrap, .tox-silver-sink {
+        z-index: 2147483647 !important;
+    }
+</Style>
+
+<Dialog>
+    <ChildContent>
+        <div class="flex flex-col gap-3 min-h-0 h-full">
+            <div class="flex flex-wrap items-center justify-between gap-2">
+                <h2 class="font-semibold">Управление на шаблони</h2>
+                <div class="flex flex-wrap gap-2">
+                    <Button Size="ThemeSize.Small" Variant="Variant.Flat" OnClick="@NewTemplate">Нов празен</Button>
+                    <Button Size="ThemeSize.Small" Variant="Variant.Flat" OnClick="@DuplicateTemplate" IsEnabled="@(_selectedTemplate is not null)">Копирай шаблон</Button>
+                    <Button Size="ThemeSize.Small" Color="PaletteColor.Primary" OnClick="@SaveAsync" IsEnabled="@(!_saving)">Запази шаблона</Button>
+                    <Button Size="ThemeSize.Small" Variant="Variant.Flat" OnClick="@(DialogReference.CancelAsync)">Затвори</Button>
+                </div>
+            </div>
+            @if (_error is not null)
+            {
+                <p class="text-danger">@_error</p>
+            }
+            @if (_loading)
+            {
+                <p>Зареждане...</p>
+            }
+            else
+            {
+                <div class="flex flex-wrap gap-3 items-end">
+                    <div class="flex-1 min-w-56">
+                        <Select Placeholder="Избери шаблон" 
+                                Items="@_templates"
+                                TItem="ContractTemplate"
+                                TValue="int?"
+                                ValueField="@(x => x.Id)" 
+                                TextField="@(x => x.Name)"
+                                Value="@_selectedId" 
+                                ValueChanged="@SelectTemplateAsync" />
+                    </div>
+                    <div class="flex-1 min-w-56">
+                        <TextField Placeholder="Име на шаблона" @bind-Value="_name" />
+                    </div>
+                </div>
+                <p class="text-xs opacity-70">Шаблоните се записват отделно. Изберете кой шаблон използва всяка фирма от „Фирми“.</p>
+                <div class="flex flex-wrap items-center gap-2 rounded-lg border border-divider p-2">
+                    <span class="text-xs font-semibold">Вмъкни поле:</span>
+                    @foreach (var field in TemplateFields)
+                    {
+                        <Button Size="ThemeSize.Small" Variant="Variant.Flat" OnClick="@(() => _editor?.InsertContent(field.Token))">@field.Label</Button>
+                    }
+                </div>
+                <div class="min-h-[420px] h-full rounded-lg border border-divider bg-white text-black p-4">
+                    <TinyMceEditor @key="_editorKey" @ref="_editor" @bind-Value="_html"
+                                   Conf="@_editorConfig" LicenseKey="gpl"
+                                   ScriptSrc="@(Navigation.ToAbsoluteUri("libs/tinymce/tinymce.min.js").ToString())"
+                                   ClassName="contract-tinymce-editor h-full" />
+                </div>
+            }
+        </div>
+    </ChildContent>
+</Dialog>
+
+@code {
+    [CascadingParameter] public IDialogInstance DialogReference { get; set; } = null!;
+    private TinyMceEditor? _editor;
+    private IReadOnlyList<ContractTemplate> _templates = [];
+    private ContractTemplate? _selectedTemplate;
+    private int? _selectedId;
+    private string _name = "";
+    private string _html = "";
+    private bool _loading = true;
+    private bool _saving;
+    private string? _error;
+    private int _editorKey;
+
+    private static readonly (string Label, string Token)[] TemplateFields =
+    [
+        ("Име на фирма", "{{Firm.Name}}"),
+        ("ЕИК / БУЛСТАТ", "{{Firm.Bulstat}}"),
+        ("Адрес на фирма", "{{Firm.Address}}"),
+        ("Представител", "{{Firm.Representative}}"),
+        ("Три имена", "{{Landlord.FullName}}"),
+        ("ЕГН", "{{Landlord.EGN}}"),
+        ("Адрес на наемодател", "{{Landlord.Address}}"),
+        ("Дата", "{{Contract.Date}}"),
+        ("Година", "{{Contract.Year}}"),
+        ("Списък с имоти", "{{Properties.List}}")
+    ];
+
+    private readonly Dictionary<string, object> _editorConfig = new()
+    {
+        ["height"] = "100%",
+        ["menubar"] = "file edit view insert format tools table",
+        ["plugins"] = "advlist autolink lists link charmap preview anchor searchreplace visualblocks code fullscreen insertdatetime table wordcount pagebreak",
+        ["toolbar"] = "undo redo | blocks fontfamily fontsize | bold italic underline strikethrough | forecolor backcolor | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | table pagebreak | removeformat code fullscreen",
+        ["toolbar_mode"] = "wrap",
+        ["promotion"] = false,
+        ["branding"] = false,
+        ["language"] = "bg_BG",
+        ["language_url"] = "/libs/tinymce/langs/bg_BG.js",
+        ["content_style"] = """
+    html, body {
+        background: white;
+    }
+
+    body {
+        font-family: 'Book Antiqua', 'Times New Roman', serif;
+        font-size: 11pt;
+        line-height: 1.25;
+        color: #000;
+        margin: 15mm;
+    }
+
+    p {
+        margin: 0 0 10px;
+        min-height: 1.25em;
+    }
+
+    p.contract-property {
+        margin: 0 0 8px;
+        line-height: 1.3;
+        text-align: justify;
+    }
+
+    h1, h2, h3 {
+        break-after: avoid;
+    }
+
+    table {
+        border-collapse: collapse;
+    }
+    """,
+
+        ["font_family_formats"] =
+    "Book Antiqua=Book Antiqua,serif;" +
+    "Times New Roman=Times New Roman,serif;" +
+    "Arial=Arial,sans-serif",
+
+        ["font_size_formats"] = "10pt 11pt 12pt 14pt 16pt 18pt 20pt",
+        // Keep original inline styles, classes and table attributes where possible.
+        ["valid_elements"] = "*[*]",
+        ["extended_valid_elements"] = "span[*],div[*],table[*],tr[*],td[*],th[*],p[*]",
+        ["convert_urls"] = false,
+
+    };
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        _editorConfig["language_url"] = Navigation.ToAbsoluteUri("libs/tinymce/langs/bg_BG.js").ToString();
+        try
+        {
+            _templates = await Firms.ListTemplatesAsync();
+            if (_templates.Count > 0)
+                SetSelected(_templates[0]);
+            else
+                NewTemplate();
+        }
+        catch (Exception ex) { _error = ex.Message; }
+        finally { _loading = false; }
+    }
+
+    private Task SelectTemplateAsync(int? id)
+    {
+        var selected = _templates.FirstOrDefault(t => t.Id == id);
+        if (selected is not null)
+            SetSelected(selected);
+        return Task.CompletedTask;
+    }
+
+    private void SetSelected(ContractTemplate template)
+    {
+        _selectedTemplate = template;
+        _selectedId = template.Id;
+        _name = template.Name;
+        _html = template.Html;
+        _error = null;
+        _editorKey++;
+    }
+
+    private void NewTemplate()
+    {
+        _selectedTemplate = null;
+        _selectedId = null;
+        _name = "Нов шаблон";
+        _html = "<h1 style=\"text-align:center\">ДОГОВОР ЗА НАЕМ</h1><p>{{Contract.Date}}</p><p>{{Firm.Name}}</p><p>{{Landlord.FullName}}</p><p>{{Properties.List}}</p>";
+        _error = null;
+        _editorKey++;
+    }
+
+    private void DuplicateTemplate()
+    {
+        if (_selectedTemplate is null) return;
+        _name = _selectedTemplate.Name + " - Копие";
+        _html = _selectedTemplate.Html;
+        _selectedTemplate = null;
+        _selectedId = null;
+        _error = null;
+        _editorKey++;
+    }
+
+    private async Task SaveAsync()
+    {
+        if (_saving) return;
+        _saving = true;
+        _error = null;
+        try
+        {
+            var saved = await Firms.SaveTemplateAsync(new ContractTemplate
+            {
+                Id = _selectedTemplate?.Id ?? 0,
+                Name = _name,
+                Html = _html,
+                LegacyRtfFile = _selectedTemplate?.LegacyRtfFile
+            });
+            _templates = await Firms.ListTemplatesAsync();
+            SetSelected(_templates.First(t => t.Id == saved.Id));
+        }
+        catch (Exception ex) { _error = ex.Message; }
+        finally { _saving = false; }
+    }
+}

@@ -1,0 +1,708 @@
+﻿@import "tailwindcss";
+
+/* =========================
+   PLUGINS
+   ========================= */
+@plugin "tailwindcss-debug-screens" {
+    className: 'debug-screens';
+    position: 'bottom, left';
+    prefix: 'screen: ';
+}
+
+@plugin "tailwind-scrollbar";
+/*@plugin "@tailwindcss/typography";*/
+
+/* Import custom component styles */
+@import "C:/Users/plame/.nuget/packages/tjt.aspnetcore.webassembly.theming.components/1.0.1/tailwind/Styles/theming.components.css";
+
+/* =========================
+   CONTENT SCANNING
+   ========================= */
+@source "!**/{bin,obj,node_modules}/**";
+@source "**/*.{razor,html,cs}";
+
+/* NuGet packages */
+@source "C:/Users/plame/Desktop/TJT_VNEXT/aspnet-core/web-assembly/tjt.aspnetcore.webassembly.theming.components/**/*.{razor,cs}";
+@source "C:/Users/plame/Desktop/TJT_VNEXT/aspnet-core/web-assembly/tjt.aspnetcore.webassembly.theming/**/*.{razor,cs}";
+@source "C:/Users/plame/Desktop/TJT_VNEXT/aspnet-core/web-assembly/tjt.grid.blazor/**/*.{razor,cs}";
+@source "C:/Users/plame/Desktop/TJT_VNEXT/aspnet-core/web-assembly/tjt.aspnetcore.components.manager/**/*.{razor,cs}";
+@source "C:/Users/plame/Desktop/TJT_VNEXT/aspnet-core/web-assembly/tjt.aspnetcore.components.charts/**/*.{razor,cs}";
+
+@source inline('mr-3');
+/* =========================
+   CUSTOM VARIANTS
+   ========================= */
+@custom-variant is-enabled (&:not([disabled]));
+@custom-variant is-disabled (&:is(.disabled, [disabled]));
+
+/* =========================
+   STATIC TOKENS
+   ========================= */
+@theme static {
+    --opacity-1: 0.01;
+    --opacity-2: 0.02;
+    --opacity-3: 0.03;
+    --opacity-4: 0.04;
+    --opacity-divider: 100%;
+    --opacity-disabled: 60%;
+    --opacity-focus: 70%;
+    --opacity-hover: 80%;
+    --shadow-inner-md: inset 0 4px 6px rgba(0, 0, 0, 0.2);
+    --shadow-inner-glow: inset 0 0 4px 3px rgba(255, 255, 255, 0.1);
+    --shadow-brand-md: 0 2px 8px 0 rgba(34, 33, 46, 0.16);
+    --shadow-brand-lg: 0 2px 16px 0 rgba(34, 33, 46, 0.16);
+}
+
+@theme inline {
+    --radius-default: var(--default-borderradius);
+}
+
+/* =========================
+   TAILWIND TOKENS
+   ========================= */
+@theme {
+    /* Typography */
+    --font-sans: var(--typography-default-family);
+    --font-heading: var(--heading-family, var(--typography-h1-family));
+    --font-title: var(--typography-h4-family);
+    --font-body1: var(--typography-body1-family);
+    --font-body2: var(--typography-body2-family);
+    --font-caption: var(--typography-caption-family);
+    --font-button: var(--typography-button-family);
+    --font-action: var(--typography-action-family);
+    --font-h1: var(--typography-h1-family);
+    --font-h2: var(--typography-h2-family);
+    --font-h3: var(--typography-h3-family);
+    --font-h4: var(--typography-h4-family);
+    --font-h5: var(--typography-h5-family);
+    --font-h6: var(--typography-h6-family);
+    --font-subtitle1: var(--typography-subtitle1-family);
+    --font-subtitle2: var(--typography-subtitle2-family);
+    --font-overline: var(--typography-overline-family);
+    /* Text scale */
+    --text-3xs: 0.5rem;
+    --text-xxs: 0.625rem;
+    --text-xs: 0.75rem;
+    --text-sm: 0.875rem;
+    --text-tiny: 0.7rem;
+    --text-base: 1rem;
+    --text-md: 1.125rem;
+    --text-lg: 1.125rem;
+    --text-xl: 1.25rem;
+    --text-xxl: 1.375rem;
+    --text-2xl: 1.5rem;
+    --text-3xl: 1.875rem;
+    /* Default line-heights for text utilities */
+    --text-xxxs--line-height: 1;
+    --text-xxs--line-height: 1;
+    --text-xs--line-height: 1rem;
+    --text-sm--line-height: 1.25rem;
+    --text-tiny--line-height: 1rem;
+    --text-base--line-height: 1.5rem;
+    --text-md--line-height: 1.75rem;
+    --text-lg--line-height: 1.75rem;
+    --text-xl--line-height: 1.75rem;
+    --text-xxl--line-height: 1.875rem;
+    --text-2xl--line-height: 2rem;
+    --text-3xl--line-height: 2.25rem;
+    /* Semantic typography tokens */
+    --text-h1: var(--typography-h1-size);
+    --text-h1--line-height: var(--typography-h1-lineheight);
+    --text-h2: var(--typography-h2-size);
+    --text-h2--line-height: var(--typography-h2-lineheight);
+    --text-h3: var(--typography-h3-size);
+    --text-h3--line-height: var(--typography-h3-lineheight);
+    --text-h4: var(--typography-h4-size);
+    --text-h4--line-height: var(--typography-h4-lineheight);
+    --text-h5: var(--typography-h5-size);
+    --text-h5--line-height: var(--typography-h5-lineheight);
+    --text-h6: var(--typography-h6-size);
+    --text-h6--line-height: var(--typography-h6-lineheight);
+    --text-default: var(--typography-default-size);
+    --text-default--line-height: var(--typography-default-lineheight);
+    --text-body1: var(--typography-body1-size);
+    --text-body1--line-height: var(--typography-body1-lineheight);
+    --text-body2: var(--typography-body2-size);
+    --text-body2--line-height: var(--typography-body2-lineheight);
+    --text-caption: var(--typography-caption-size);
+    --text-caption--line-height: var(--typography-caption-lineheight);
+    --text-button: var(--typography-button-size);
+    --text-button--line-height: var(--typography-button-lineheight);
+    --text-subtitle1: var(--typography-subtitle1-size);
+    --text-subtitle1--line-height: var(--typography-subtitle1-lineheight);
+    --text-subtitle2: var(--typography-subtitle2-size);
+    --text-subtitle2--line-height: var(--typography-subtitle2-lineheight);
+    --text-overline: var(--typography-overline-size);
+    --text-overline--line-height: var(--typography-overline-lineheight);
+    /* Layout / effects */
+    --spacing-30: 7.5rem;
+    --ease-cubic: cubic-bezier(.4,0,.2,1);
+    --blur-xs: 3px;
+    --color-current-border: color-mix(in srgb, currentColor 15%, transparent);
+    /* Semantic tokens from builder */
+    --color-background: var(--palette-background);
+    --color-foreground: var(--palette-foreground);
+    --color-landing-background: var(--palette-landing-background);
+    --color-landing-foreground: var(--palette-landing-foreground);
+    --color-highlight: var(--palette-highlight);
+    --color-highlight-foreground: var(--palette-highlight-foreground);
+    --color-accent: var(--palette-accent);
+    --color-accent-foreground: var(--palette-accent-foreground);
+    --color-surface: var(--palette-surface);
+    --color-surface-foreground: var(--palette-surface-foreground);
+    --color-surface-sunken: var(--palette-surface-sunken);
+    --color-surface-sunken-foreground: var(--palette-surface-sunken-foreground);
+    --color-surface-muted: var(--palette-surface-muted);
+    --color-surface-muted-foreground: var(--palette-surface-muted-foreground);
+    --color-surface-subtle: var(--palette-surface-subtle);
+    --color-surface-subtle-foreground: var(--palette-surface-subtle-foreground);
+    --color-surface-elevated: var(--palette-surface-elevated);
+    --color-surface-elevated-foreground: var(--palette-surface-elevated-foreground);
+    --color-surface-raised: var(--palette-surface-raised);
+    --color-surface-raised-foreground: var(--palette-surface-raised-foreground);
+    --color-border: var(--palette-border);
+    --color-border-muted: var(--palette-border-muted);
+    --color-overlay: var(--palette-overlay);
+    --color-focus-ring: var(--palette-focus-ring);
+    --color-primary: var(--palette-primary);
+    --color-primary-foreground: var(--palette-primary-foreground);
+    --color-primary-hover: var(--palette-primary-hover);
+    --color-primary-active: var(--palette-primary-active);
+    --color-primary-sunken: var(--palette-primary-sunken);
+    --color-primary-subtle: var(--palette-primary-subtle);
+    --color-primary-subtle-foreground: var(--palette-primary-subtle-foreground);
+    --color-secondary: var(--palette-secondary);
+    --color-secondary-foreground: var(--palette-secondary-foreground);
+    --color-secondary-hover: var(--palette-secondary-hover);
+    --color-secondary-active: var(--palette-secondary-active);
+    --color-secondary-sunken: var(--palette-secondary-sunken);
+    --color-secondary-subtle: var(--palette-secondary-subtle);
+    --color-secondary-subtle-foreground: var(--palette-secondary-subtle-foreground);
+    --color-tertiary: var(--palette-tertiary);
+    --color-tertiary-foreground: var(--palette-tertiary-foreground);
+    --color-tertiary-hover: var(--palette-tertiary-hover);
+    --color-tertiary-active: var(--palette-tertiary-active);
+    --color-tertiary-sunken: var(--palette-tertiary-sunken);
+    --color-tertiary-subtle: var(--palette-tertiary-subtle);
+    --color-tertiary-subtle-foreground: var(--palette-tertiary-subtle-foreground);
+    --color-success: var(--palette-success);
+    --color-success-foreground: var(--palette-success-foreground);
+    --color-success-sunken: var(--palette-success-sunken);
+    --color-success-subtle: var(--palette-success-subtle);
+    --color-warning: var(--palette-warning);
+    --color-warning-foreground: var(--palette-warning-foreground);
+    --color-warning-sunken: var(--palette-warning-sunken);
+    --color-warning-subtle: var(--palette-warning-subtle);
+    --color-error: var(--palette-error);
+    --color-error-foreground: var(--palette-error-foreground);
+    --color-error-sunken: var(--palette-error-sunken);
+    --color-error-subtle: var(--palette-error-subtle);
+    --color-info: var(--palette-info);
+    --color-info-foreground: var(--palette-info-foreground);
+    --color-info-sunken: var(--palette-info-sunken);
+    --color-info-subtle: var(--palette-info-subtle);
+    --color-text-strong: var(--palette-text-strong);
+    --color-text-primary: var(--palette-text-primary);
+    --color-text-secondary: var(--palette-text-secondary);
+    --color-text-tertiary: var(--palette-text-tertiary);
+    --color-text-disabled: var(--palette-text-disabled);
+    /* Component tokens */
+    --color-appbar-background: var(--appbar-background);
+    --color-appbar-foreground: var(--appbar-foreground);
+    --color-appbar-border: var(--appbar-border);
+    --color-drawer-background: var(--drawer-background);
+    --color-drawer-foreground: var(--drawer-foreground);
+    --color-drawer-border: var(--drawer-border);
+    --color-table-background: var(--table-background);
+    --color-table-foreground: var(--table-foreground);
+    --color-table-border: var(--table-border);
+    --color-table-lines: var(--table-lines);
+    --color-table-striped: var(--table-striped);
+    --color-table-hover: var(--table-hover);
+    --color-table-header-background: var(--table-header-background);
+    --color-table-header-foreground: var(--table-header-foreground);
+    --color-button-primary-background: var(--button-primary-background);
+    --color-button-primary-foreground: var(--button-primary-foreground);
+    --color-button-primary-border: var(--button-primary-border);
+    --color-button-primary-hover-background: var(--button-primary-hover-background);
+    --color-button-primary-active-background: var(--button-primary-active-background);
+    --color-button-primary-disabled-background: var(--button-primary-disabled-background);
+    --color-button-primary-disabled-foreground: var(--button-primary-disabled-foreground);
+    --color-button-secondary-background: var(--button-secondary-background);
+    --color-button-secondary-foreground: var(--button-secondary-foreground);
+    --color-button-secondary-border: var(--button-secondary-border);
+    --color-button-secondary-hover-background: var(--button-secondary-hover-background);
+    --color-button-secondary-active-background: var(--button-secondary-active-background);
+    --color-button-secondary-disabled-background: var(--button-secondary-disabled-background);
+    --color-button-secondary-disabled-foreground: var(--button-secondary-disabled-foreground);
+    --color-button-tertiary-background: var(--button-tertiary-background);
+    --color-button-tertiary-foreground: var(--button-tertiary-foreground);
+    --color-button-tertiary-border: var(--button-tertiary-border);
+    --color-button-tertiary-hover-background: var(--button-tertiary-hover-background);
+    --color-button-tertiary-active-background: var(--button-tertiary-active-background);
+    --color-button-tertiary-disabled-background: var(--button-tertiary-disabled-background);
+    --color-button-tertiary-disabled-foreground: var(--button-tertiary-disabled-foreground);
+    --color-button-surface-background: var(--button-surface-background);
+    --color-button-surface-foreground: var(--button-surface-foreground);
+    --color-button-surface-border: var(--button-surface-border);
+    --color-button-surface-hover-background: var(--button-surface-hover-background);
+    --color-button-surface-active-background: var(--button-surface-active-background);
+    --color-button-surface-disabled-background: var(--button-surface-disabled-background);
+    --color-button-surface-disabled-foreground: var(--button-surface-disabled-foreground);
+    --color-button-ghost-background: var(--button-ghost-background);
+    --color-button-ghost-foreground: var(--button-ghost-foreground);
+    --color-button-ghost-border: var(--button-ghost-border);
+    --color-button-ghost-hover-background: var(--button-ghost-hover-background);
+    --color-button-ghost-active-background: var(--button-ghost-active-background);
+    --color-button-ghost-disabled-background: var(--button-ghost-disabled-background);
+    --color-button-ghost-disabled-foreground: var(--button-ghost-disabled-foreground);
+    --color-input-background: var(--input-background);
+    --color-input-foreground: var(--input-foreground);
+    --color-input-placeholder: var(--input-placeholder);
+    --color-input-border: var(--input-border);
+    --color-input-hover-border: var(--input-hover-border);
+    --color-input-focus-border: var(--input-focus-border);
+    --color-input-focus-ring: var(--input-focus-ring);
+    --color-input-disabled-background: var(--input-disabled-background);
+    --color-card-background: var(--card-background);
+    --color-card-foreground: var(--card-foreground);
+    --color-card-border: var(--card-border);
+    /* Helpers */
+    --color-action-default: var(--color-text-primary);
+    --color-lines-default: var(--color-border);
+    --color-lines-inputs: var(--color-input-border);
+    --color-divider: var(--color-border);
+    --color-divider-light: var(--color-border-muted);
+    --color-drawer: var(--color-drawer-background);
+    --color-drawer-text: var(--color-drawer-foreground);
+    --color-footer: var(--color-appbar-background);
+    --color-footer-foreground: var(--color-appbar-foreground);
+    --color-mix-5: color-mix(in srgb, currentColor 5%, transparent);
+    --color-mix-10: color-mix(in srgb, currentColor 10%, transparent);
+    --color-mix-20: color-mix(in srgb, currentColor 20%, transparent);
+    --color-mix-30: color-mix(in srgb, currentColor 30%, transparent);
+    --color-mix-40: color-mix(in srgb, currentColor 40%, transparent);
+    --color-mix-50: color-mix(in srgb, currentColor 50%, transparent);
+    --color-mix-60: color-mix(in srgb, currentColor 60%, transparent);
+    --color-mix-70: color-mix(in srgb, currentColor 70%, transparent);
+    --color-mix-80: color-mix(in srgb, currentColor 80%, transparent);
+    --color-mix-90: color-mix(in srgb, currentColor 90%, transparent);
+    --transition-colors: color, background-color, border-color, text-decoration-color, fill, stroke, --tw-gradient-from, --tw-gradient-via, --tw-gradient-to;
+    --transition-transforms: transform, translate, scale, rotate;
+    --transition-property-colors-shadow: var(--transition-colors), box-shadow;
+    --transition-property-colors-opacity: var(--transition-colors), opacity;
+    --transition-property-colors-transform: var(--transition-colors), var(--transition-transforms);
+    --transition-property-colors-transform-opacity: var(--transition-property-colors-transform), opacity;
+    --transition-property-transform-opacity: var(--transition-transforms), opacity;
+    --animate-enter: enter 150ms ease-out normal both;
+    --animate-shimmer: shimmer 2s infinite;
+    --animate-sway: sway 0.75s infinite;
+    --animate-blink: blink 1.5s infinite both;
+    --animate-fade-out: fade-out 1.2s infinite;
+
+    @keyframes enter {
+        0% {
+            opacity: 0;
+            transform: translateZ(0) scale(0.85);
+        }
+
+        100% {
+            opacity: 1;
+            transform: translateZ(0) scale(1);
+        }
+    }
+
+    @keyframes shimmer {
+        100% {
+            translate: 100%;
+        }
+    }
+
+    @keyframes sway {
+        0%, 100% {
+            translate: 0 0;
+        }
+
+        50% {
+            translate: 0 -150%;
+        }
+    }
+
+    @keyframes blink {
+        0%, 100% {
+            opacity: 0.2;
+        }
+
+        50% {
+            opacity: 1;
+        }
+    }
+
+    @keyframes fade-out {
+        0% {
+            opacity: 1;
+        }
+
+        100% {
+            opacity: 0.15;
+        }
+    }
+
+    --default-transition-duration: 250ms;
+}
+
+/* =========================
+   CONTAINER
+   ========================= */
+/*@utility container {
+    width: 100%;
+    margin-inline: auto;
+    padding-inline: 1rem;
+    max-width: 1590px;
+
+    @variant md {
+        padding-inline: 1.5rem;
+    }
+
+    @variant xl {
+        padding-inline: 2rem;
+    }
+}
+}*/
+
+/* =========================
+   BASE
+   ========================= */
+@layer base {
+    *,
+    ::before,
+    ::after {
+        border-color: var(--color-current-border);
+    }
+
+    body {
+        @apply text-text-primary bg-background;
+    }
+
+    button {
+        @apply enabled:cursor-pointer;
+    }
+
+    [role=link], a {
+        cursor: pointer;
+    }
+
+    [role=button], button {
+        cursor: pointer;
+    }
+
+    [disabled], .disabled {
+        cursor: default;
+    }
+
+        .disabled button,
+        .disabled [role="button"],
+        [disabled] button,
+        [disabled] [role="button"],
+        [disabled] a,
+        [disabled] [role="link"] {
+            cursor: default;
+        }
+
+    vr, .vr {
+        @apply inline-block min-h-[1em] w-px self-stretch bg-current opacity-25;
+    }
+
+   /* hr, .hr {
+        @apply my-4 border-t border-t-current text-inherit opacity-25;
+    }*/
+
+    .hstack {
+        @apply flex flex-auto flex-row self-stretch;
+    }
+
+    .vstack {
+        @apply flex flex-auto flex-col self-stretch;
+    }
+
+    .flex-break {
+        flex-basis: 100%;
+        height: 0;
+    }
+}
+
+/* =========================
+   TYPOGRAPHY HELPERS
+   ========================= */
+@layer base {
+    .type-default {
+        font-family: var(--typography-default-family);
+        font-size: var(--typography-default-size);
+        font-weight: var(--typography-default-weight);
+        line-height: var(--typography-default-lineheight);
+        text-transform: var(--typography-default-text-transform);
+        letter-spacing: var(--typography-default-letterspacing);
+    }
+
+    .type-action {
+        font-family: var(--typography-action-family);
+        font-size: var(--typography-action-size);
+        font-weight: var(--typography-action-weight);
+        line-height: var(--typography-action-lineheight);
+        text-transform: var(--typography-action-text-transform);
+        letter-spacing: var(--typography-action-letterspacing);
+    }
+
+    .type-body1 {
+        font-family: var(--typography-body1-family);
+        font-size: var(--typography-body1-size);
+        font-weight: var(--typography-body1-weight);
+        line-height: var(--typography-body1-lineheight);
+        text-transform: var(--typography-body1-text-transform);
+        letter-spacing: var(--typography-body1-letterspacing);
+    }
+
+    .type-body2 {
+        font-family: var(--typography-body2-family);
+        font-size: var(--typography-body2-size);
+        font-weight: var(--typography-body2-weight);
+        line-height: var(--typography-body2-lineheight);
+        text-transform: var(--typography-body2-text-transform);
+        letter-spacing: var(--typography-body2-letterspacing);
+    }
+
+    .type-subtitle1 {
+        font-family: var(--typography-subtitle1-family);
+        font-size: var(--typography-subtitle1-size);
+        font-weight: var(--typography-subtitle1-weight);
+        line-height: var(--typography-subtitle1-lineheight);
+        text-transform: var(--typography-subtitle1-text-transform);
+        letter-spacing: var(--typography-subtitle1-letterspacing);
+    }
+
+    .type-subtitle2 {
+        font-family: var(--typography-subtitle2-family);
+        font-size: var(--typography-subtitle2-size);
+        font-weight: var(--typography-subtitle2-weight);
+        line-height: var(--typography-subtitle2-lineheight);
+        text-transform: var(--typography-subtitle2-text-transform);
+        letter-spacing: var(--typography-subtitle2-letterspacing);
+    }
+
+    .type-button {
+        font-family: var(--typography-button-family);
+        font-size: var(--typography-button-size);
+        font-weight: var(--typography-button-weight);
+        line-height: var(--typography-button-lineheight);
+        text-transform: var(--typography-button-text-transform);
+        letter-spacing: var(--typography-button-letterspacing);
+    }
+
+    .type-caption {
+        font-family: var(--typography-caption-family);
+        font-size: var(--typography-caption-size);
+        font-weight: var(--typography-caption-weight);
+        line-height: var(--typography-caption-lineheight);
+        text-transform: var(--typography-caption-text-transform);
+        letter-spacing: var(--typography-caption-letterspacing);
+    }
+
+    .type-overline {
+        font-family: var(--typography-overline-family);
+        font-size: var(--typography-overline-size);
+        font-weight: var(--typography-overline-weight);
+        line-height: var(--typography-overline-lineheight);
+        text-transform: var(--typography-overline-text-transform);
+        letter-spacing: var(--typography-overline-letterspacing);
+    }
+
+    .type-h1 {
+        font-family: var(--typography-h1-family);
+        font-size: var(--typography-h1-size);
+        font-weight: var(--typography-h1-weight);
+        line-height: var(--typography-h1-lineheight);
+        text-transform: var(--typography-h1-text-transform);
+        letter-spacing: var(--typography-h1-letterspacing);
+    }
+
+    .type-h2 {
+        font-family: var(--typography-h2-family);
+        font-size: var(--typography-h2-size);
+        font-weight: var(--typography-h2-weight);
+        line-height: var(--typography-h2-lineheight);
+        text-transform: var(--typography-h2-text-transform);
+        letter-spacing: var(--typography-h2-letterspacing);
+    }
+
+    .type-h3 {
+        font-family: var(--typography-h3-family);
+        font-size: var(--typography-h3-size);
+        font-weight: var(--typography-h3-weight);
+        line-height: var(--typography-h3-lineheight);
+        text-transform: var(--typography-h3-text-transform);
+        letter-spacing: var(--typography-h3-letterspacing);
+    }
+
+    .type-h4 {
+        font-family: var(--typography-h4-family);
+        font-size: var(--typography-h4-size);
+        font-weight: var(--typography-h4-weight);
+        line-height: var(--typography-h4-lineheight);
+        text-transform: var(--typography-h4-text-transform);
+        letter-spacing: var(--typography-h4-letterspacing);
+    }
+
+    .type-h5 {
+        font-family: var(--typography-h5-family);
+        font-size: var(--typography-h5-size);
+        font-weight: var(--typography-h5-weight);
+        line-height: var(--typography-h5-lineheight);
+        text-transform: var(--typography-h5-text-transform);
+        letter-spacing: var(--typography-h5-letterspacing);
+    }
+
+    .type-h6 {
+        font-family: var(--typography-h6-family);
+        font-size: var(--typography-h6-size);
+        font-weight: var(--typography-h6-weight);
+        line-height: var(--typography-h6-lineheight);
+        text-transform: var(--typography-h6-text-transform);
+        letter-spacing: var(--typography-h6-letterspacing);
+    }
+}
+
+/* =========================
+   UTILITIES
+   ========================= */
+@utility underline-position-under {
+    text-underline-position: under;
+}
+
+@utility scrollbar-root {
+    scrollbar-width: auto;
+    scrollbar-color: var(--scroll-bar-thumb) var(--scroll-bar-track);
+
+    &::-webkit-scrollbar {
+        width: var(--scroll-bar);
+        height: var(--scroll-bar);
+        background-color: var(--scroll-bar-track);
+    }
+
+    &::-webkit-scrollbar-thumb {
+        background: var(--scroll-bar-thumb);
+        border: 2px solid var(--scroll-bar-track);
+        border-radius: 9999px;
+        background-clip: padding-box;
+    }
+
+        &::-webkit-scrollbar-thumb:hover {
+            background: var(--scroll-bar-thumb-hover);
+        }
+
+    &::-webkit-scrollbar-corner {
+        background: var(--scroll-bar-track);
+    }
+}
+
+@utility scrollbar-thin {
+    scrollbar-width: thin;
+
+    &::-webkit-scrollbar {
+        width: 6px;
+        height: 6px;
+    }
+}
+
+@utility scrollbar-inherit {
+    scrollbar-width: auto;
+    scrollbar-color: currentColor transparent;
+
+    &::-webkit-scrollbar {
+        width: 8px;
+        height: 8px;
+    }
+
+    &::-webkit-scrollbar-thumb {
+        background: currentColor;
+        border-radius: 9999px;
+    }
+
+    &::-webkit-scrollbar-track {
+        background: transparent;
+    }
+}
+
+@utility scrollbar-muted {
+    scrollbar-width: auto;
+    scrollbar-color: color-mix(in srgb, currentColor 40%, transparent) color-mix(in srgb, currentColor 5%, transparent);
+    /*scrollbar-color: color-mix(in srgb, currentColor 40%, transparent) var(--scroll-bar-track);*/
+
+    &::-webkit-scrollbar {
+        width: 8px;
+        height: 8px;
+    }
+
+    &::-webkit-scrollbar-thumb {
+        background: color-mix(in srgb, currentColor 40%, transparent);
+        border-radius: 9999px;
+    }
+
+    &::-webkit-scrollbar-track {
+        background: transparent;
+    }
+}
+
+@utility scrollbar-hide {
+    scrollbar-width: none;
+
+    &::-webkit-scrollbar {
+        display: none;
+    }
+}
+@layer base {
+    [class*="overflow"] {
+        @apply scrollbar-muted scrollbar-thin;
+    }
+}
+
+@theme {
+    --shadow-inner-md: inset 0 4px 6px rgba(0, 0, 0, 0.2);
+    --shadow-inner-glow: inset 0 0 4px 3px rgba(255, 255, 255, 0.1);
+}
+@keyframes lineMove1 {
+    0%, 100% {
+        transform: translateY(30%);
+    }
+
+    50% {
+        transform: translateY(32%);
+    }
+}
+
+@keyframes lineMove2 {
+    0%, 100% {
+        transform: translateY(15%);
+    }
+
+    50% {
+        transform: translateY(17%);
+    }
+}
+
+@keyframes lineMove3 {
+    0%, 100% {
+        transform: translateY(0);
+    }
+
+    50% {
+        transform: translateY(2%);
+    }
+}
+/* =========================
+   DARK MODE
+   ========================= */
+/*@variant dark (&:where(.dark, .dark *));
+*/
+@custom-variant dark (&:where([data-theme=dark], [data-theme=dark] *));
+
+@import "./main.css";

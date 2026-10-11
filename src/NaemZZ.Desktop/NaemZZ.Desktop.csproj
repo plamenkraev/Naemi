@@ -1,0 +1,54 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.Razor">
+
+  <!--
+    Microsoft.NET.Sdk.Razor (not the plain WPF Sdk) is required so static web assets from
+    NaemZZ.Components and LumexUI (e.g. "_content/LumexUI/...") are composed correctly into
+    this app's wwwroot for BlazorWebView, per the official WPF Blazor Hybrid tutorial:
+    https://learn.microsoft.com/aspnet/core/blazor/hybrid/tutorials/wpf
+  -->
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <!-- .NET 10 WPF BlazorWebView requires a Windows 10+ TFM suffix (WebView2CompositionControl). -->
+    <TargetFramework>net10.0-windows10.0.17763.0</TargetFramework>
+    <RootNamespace>NaemZZ.Desktop</RootNamespace>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <UseWPF>true</UseWPF>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\NaemZZ.Core\NaemZZ.Core.csproj" />
+    <ProjectReference Include="..\NaemZZ.Infrastructure\NaemZZ.Infrastructure.csproj" />
+    <ProjectReference Include="..\NaemZZ.Components\NaemZZ.Components.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="LumexUI" Version="2.4.0" />
+    <PackageReference Include="Microsoft.AspNetCore.Components.WebView.Wpf" Version="10.0.1" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="10.0.12">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="Microsoft.Extensions.Hosting" Version="10.0.0" />
+    <PackageReference Include="R3Extensions.WPF" Version="1.3.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="Contracts\**" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Remove="compilerconfig.json" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="compilerconfig.json" />
+  </ItemGroup>
+
+  <!-- ───────── Tailwind CSS v4 build pipeline (no Node.js required) ─────────
+       Downloads the official standalone Tailwind CLI binary on first build and compiles
+       Styles/app.css -> wwwroot/css/app.css. Node.js is never required, not even on the
+       developer machine. -->
+
+
+</Project>
