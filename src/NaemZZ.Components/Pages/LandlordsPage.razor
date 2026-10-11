@@ -193,7 +193,6 @@
                     </section>
                 </ExpansionPanel>
             </ExpansionPanels>
-
           
             <section class="flex min-h-0 flex-col gap-2 rounded-lg border border-current-border bg-surface text-surface-foreground p-3">
                 <div class="flex flex-wrap items-center justify-between gap-2">
@@ -212,7 +211,12 @@
                     <span class="text-sm font-medium">Общо: @(_current.GetTotal.ToString("N3")) дка</span>
                 </div>
                 <div class="min-w-0 min-h-0 h-full">
-                    <HtmlGrid TGridItem="PropertyDto" FixedHeaderDataGridHeight="100%" FixedHeader Items="@_current.IMOTIs.AsQueryable()" Hoverable="true" Striped="true"
+                    <HtmlGrid TGridItem="PropertyDto"
+                              FixedHeaderDataGridHeight="100%"
+                              FixedHeader
+                              Items="@_current.IMOTIs.AsQueryable()"
+                              Hoverable="true"
+                              Striped="true"
                               Class="w-full h-full mb-0">
                         <LoadingContent>
 

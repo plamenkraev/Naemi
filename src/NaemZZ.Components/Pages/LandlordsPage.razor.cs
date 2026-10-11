@@ -23,7 +23,6 @@ public partial class LandlordsPage : BaseDomComponent
     [Inject] private IServiceScopeFactory ScopeFactory { get; set; } = null!;
     [Inject] private ILookupService Lookups { get; set; } = null!;
 
-    
     private readonly Dictionary<int, IReadOnlyList<Municipality>> _municipalities = [];
     private readonly Dictionary<int, IReadOnlyList<Settlement>> _settlements = [];
     private IReadOnlyList<PropertyCategory> _categories = [];
@@ -33,10 +32,17 @@ public partial class LandlordsPage : BaseDomComponent
     private bool _showHistory;
     private bool _suppressSelection;
     private bool HasUnsavedChanges => _editor.HasUnsavedChanges;
+
     private void RecordEdit(string label = "Редакция") => _editor.Record(label);
-    private void Undo() { _current = _editor.Undo(); _ = InvokeAsync(PrepareCurrentLocationsAsync); }
-    private void Redo() { _current = _editor.Redo(); _ = InvokeAsync(PrepareCurrentLocationsAsync); }
-    private void JumpToHistory(int index) { _current = _editor.JumpTo(index); _ = InvokeAsync(PrepareCurrentLocationsAsync); }
+
+    private void Undo()
+    { _current = _editor.Undo(); _ = InvokeAsync(PrepareCurrentLocationsAsync); }
+
+    private void Redo()
+    { _current = _editor.Redo(); _ = InvokeAsync(PrepareCurrentLocationsAsync); }
+
+    private void JumpToHistory(int index)
+    { _current = _editor.JumpTo(index); _ = InvokeAsync(PrepareCurrentLocationsAsync); }
 
     private async Task<bool> ConfirmLeaveAsync()
     {
@@ -74,18 +80,22 @@ public partial class LandlordsPage : BaseDomComponent
 
     private AsyncServiceScope? _scope;
     private bool _showValidation;
-   
+
     private ILandlordService Service { get; set; } = null!;
     private ReactiveProperty<string> SearchFilter { get; } = new();
 
     private readonly AsyncReactiveCommand SaveCommand;
     private readonly AsyncReactiveCommand DeleteCommand;
+    private int? defaultRegionId = null;
+    private int? defaultMunicipalityId = null;
+    private int? defaultCityId = null;
 
     public LandlordsPage()
     {
         SaveCommand = new AsyncReactiveCommand().WithSubscribe(SaveAsync).DisposeWith(this);
         DeleteCommand = new AsyncReactiveCommand().WithSubscribe(DeleteLandlord).DisposeWith(this);
     }
+
     protected override async Task OnInitializedAsync()
     {
         _scope = ScopeFactory.CreateAsyncScope();
@@ -99,12 +109,35 @@ public partial class LandlordsPage : BaseDomComponent
                 await InvokeStateHasChanged();
             })
             .DisposeWith(this);
-        
+
         _firms = await Lookups.GetFirmsAsync();
         _contractTemplates = await FirmManagement.ListTemplatesAsync();
         _categories = await Lookups.GetCategoriesAsync();
         _regions = await Lookups.GetRegionsAsync();
-        
+
+        defaultRegionId = _regions.FirstOrDefault(w => w.NAME == "Силистра")?.ID;
+        defaultMunicipalityId = null;
+        defaultCityId = null;
+
+        if (defaultRegionId is not null)
+        {
+            await EnsureMunicipalitiesAsync(defaultRegionId.Value);
+
+            if (_municipalities.TryGetValue(defaultRegionId.Value, out var municipalities))
+            {
+                defaultMunicipalityId = municipalities.FirstOrDefault(w => w.NAME == "Дулово")?.ID;
+                if (defaultMunicipalityId is not null)
+                {
+                    await EnsureSettlementsAsync(defaultMunicipalityId.Value);
+
+                    if (_settlements.TryGetValue(defaultMunicipalityId.Value, out var settlements))
+                    {
+                        defaultCityId = settlements.FirstOrDefault(w => w.NAME == "Дулово")?.ID;
+                    }
+                }
+            }
+        }
+
         await ReloadAsync();
     }
 
@@ -127,7 +160,7 @@ public partial class LandlordsPage : BaseDomComponent
         }
 
         var properties = _current.IMOTIs.ToArray();
-        
+
         foreach (var region in properties.Select(x => x.EKATTE_AREA).OfType<int>().Distinct())
         {
             await EnsureMunicipalitiesAsync(region);
@@ -195,9 +228,7 @@ public partial class LandlordsPage : BaseDomComponent
         property.EKATTE_AREA = id;
         property.EKATTE_MUNICIPALITY = null;
         property.EKATTE_CITY = null;
-        
-        
-        
+
         if (id is { } region)
         {
             await EnsureMunicipalitiesAsync(region);
@@ -213,8 +244,7 @@ public partial class LandlordsPage : BaseDomComponent
 
         property.EKATTE_MUNICIPALITY = id;
         property.EKATTE_CITY = null;
-        
-        
+
         if (id is { } municipality)
         {
             await EnsureSettlementsAsync(municipality);
@@ -224,7 +254,6 @@ public partial class LandlordsPage : BaseDomComponent
     private static void OnPropertySettlementChanged(PropertyDto property, int? id)
     {
         property.EKATTE_CITY = id;
-        
     }
 
     private async Task Select(LandlordListDto landlord)
@@ -283,7 +312,13 @@ public partial class LandlordsPage : BaseDomComponent
         _isPropertyEditMode = false;
         _propertyBackup = null;
         _selectedLandlordId = null;
-        _current = new LandlordDto();
+
+        _current = new LandlordDto()
+        {
+            OBLAST = defaultRegionId,
+            OBSTINA = defaultMunicipalityId,
+            CITY = defaultCityId,
+        };
         _editor.Open(_current);
         _showValidation = false;
     }
@@ -376,7 +411,16 @@ public partial class LandlordsPage : BaseDomComponent
 
     private void AddProperty()
     {
-        if (_current is not null) { _current.IMOTIs.Add(new PropertyDto()); RecordEdit("Добавен имот"); }
+        if (_current is not null)
+        {
+            _current.IMOTIs.Add(new PropertyDto()
+            {
+                EKATTE_AREA = defaultRegionId,
+                EKATTE_MUNICIPALITY = defaultMunicipalityId,
+                EKATTE_CITY = defaultCityId,
+            });
+            RecordEdit("Добавен имот");
+        }
     }
 
     private void DeleteProperty(PropertyDto property)
@@ -429,7 +473,7 @@ public partial class LandlordsPage : BaseDomComponent
     {
         return _current is null ? null : LandlordErrors(_current).GetValueOrDefault(name);
     }
-    
+
     private string? PropertyError(PropertyDto property, string name)
     {
         return PropertyErrors(property).GetValueOrDefault(name);
@@ -513,8 +557,9 @@ public partial class LandlordsPage : BaseDomComponent
 
         try
         {
-            if (_current.ID == 0) { 
-                await NotificationService.Error("Първо запазете наемодателя."); 
+            if (_current.ID == 0)
+            {
+                await NotificationService.Error("Първо запазете наемодателя.");
                 return;
             }
 
@@ -524,10 +569,10 @@ public partial class LandlordsPage : BaseDomComponent
                 return;
             }
 
-            if (contractLandlord.FIRM_ID is null) 
+            if (contractLandlord.FIRM_ID is null)
             {
                 await NotificationService.Error("Моля, изберете фирма за наемодателя.");
-                return; 
+                return;
             }
 
             var dialog = await DialogService.ShowAsync<ContractEditorDialog>(
