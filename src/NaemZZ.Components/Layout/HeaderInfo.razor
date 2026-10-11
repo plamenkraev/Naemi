@@ -1,0 +1,26 @@
+﻿@using NaemZZ.Components.Events
+@inherits BaseDomComponent
+
+<small class="text-xs text-current/60">
+    (Наемодатели: @Info.LandlordCount | Имоти: @Info.PropertyCount - @Info.PropertyAmount.ToString("N3") дка)
+</small>
+
+@code {
+    [Inject] ILandlordService LandlordService { get; set; } = null!;
+
+    (int LandlordCount, int PropertyCount, decimal PropertyAmount) Info;
+
+    protected override async Task OnInitializedAsync()
+    {
+        
+        Info = await LandlordService.GetInfoAsync(ct: TokenSource.Token);
+
+        MessageBroker.ToObservable<RefreshEvent>().SubscribeAsync(async x =>
+        {
+            Info = await LandlordService.GetInfoAsync(ct: TokenSource.Token);
+            await InvokeStateHasChanged();
+        });
+
+        await base.OnInitializedAsync();
+    }
+}

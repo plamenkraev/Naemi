@@ -1,4 +1,5 @@
 @using System.Extensions.Collections.Generic
+@using NaemZZ.Components.Events
 @using Tjt.AspNetCore.WebAssembly.Theming.Navigation
 @inherits Tjt.AspNetCore.Components.BaseLayoutComponent
 
@@ -8,9 +9,7 @@
         <a href="/" class="text-lg font-semibold">
             Договори за наем
 
-            <small class="text-xs text-current/60">
-                (Наемодатели: @Info.LandlordCount | Имоти: @Info.PropertyCount - @Info.PropertyAmount.ToString("N3") дка)
-            </small>
+            <HeaderInfo/>
         </a>
 
         <nav class="flex items-center gap-4 text-sm" aria-label="Основно меню">
@@ -81,17 +80,11 @@
 
 @code {
     [Inject] IMenuManager MenuManager { get; set; } = null!;
-    [Inject] ILandlordService LandlordService { get; set; } = null!;
-
     private ApplicationMenu? MainMenu { get; set; }
-
-    (int LandlordCount, int PropertyCount, decimal PropertyAmount) Info;
 
     protected override async Task OnInitializedAsync()
     {
         MainMenu = await MenuManager.GetMainMenuAsync(TokenSource.Token);
-
-        Info = await LandlordService.GetInfoAsync(ct: TokenSource.Token);
 
         await base.OnInitializedAsync();
     }
