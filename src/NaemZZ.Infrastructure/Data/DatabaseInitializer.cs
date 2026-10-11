@@ -48,7 +48,7 @@ public static class DatabaseInitializer
             }
 
             // Validate the resulting schema is reachable (a cheap no-op query per table root).
-            await db.NAEMODATELIs.AsNoTracking().Select(n => n.ID).Take(1).ToListAsync(ct);
+            await db.Landlords.AsNoTracking().Select(n => n.ID).Take(1).ToListAsync(ct);
 
             return DatabaseInitResult.Ok(backupPath);
         }

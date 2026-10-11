@@ -25,28 +25,28 @@ public class LookupService : ILookupService
         await GetOrAddAsync("firms", async () =>
         {
             await using var db = await _factory.CreateDbContextAsync(ct);
-            return await db.Company.AsNoTracking().OrderBy(f => f.Name).ToListAsync(ct);
+            return await db.Companies.AsNoTracking().OrderBy(f => f.Name).ToListAsync(ct);
         });
 
     public async Task<IReadOnlyList<PropertyCategory>> GetCategoriesAsync(CancellationToken ct = default) =>
         await GetOrAddAsync("categories", async () =>
         {
             await using var db = await _factory.CreateDbContextAsync(ct);
-            return await db.PropertyCategory.AsNoTracking().OrderBy(c => c.NAME).ToListAsync(ct);
+            return await db.PropertyCategories.AsNoTracking().OrderBy(c => c.NAME).ToListAsync(ct);
         });
 
     public async Task<IReadOnlyList<Region>> GetRegionsAsync(CancellationToken ct = default) =>
         await GetOrAddAsync("regions", async () =>
         {
             await using var db = await _factory.CreateDbContextAsync(ct);
-            return await db.Region.AsNoTracking().OrderBy(o => o.NAME).ToListAsync(ct);
+            return await db.Regions.AsNoTracking().OrderBy(o => o.NAME).ToListAsync(ct);
         });
 
     public async Task<IReadOnlyList<Municipality>> GetMunicipalitiesAsync(int regionId, CancellationToken ct = default) =>
         await GetOrAddAsync($"municipalities:{regionId}", async () =>
         {
             await using var db = await _factory.CreateDbContextAsync(ct);
-            return await db.Municipality.AsNoTracking()
+            return await db.Municipalities.AsNoTracking()
                 .Where(o => o.OBL_ID == regionId)
                 .OrderBy(o => o.NAME)
                 .ToListAsync(ct);
@@ -56,7 +56,7 @@ public class LookupService : ILookupService
         await GetOrAddAsync($"settlements:{municipalityId}", async () =>
         {
             await using var db = await _factory.CreateDbContextAsync(ct);
-            return await db.Settlement.AsNoTracking()
+            return await db.Settlements.AsNoTracking()
                 .Where(e => e.OBST_ID == municipalityId)
                 .OrderBy(e => e.NAME)
                 .ToListAsync(ct);

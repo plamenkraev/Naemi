@@ -1,8 +1,10 @@
 @page "/settings/companies"
 @using System.Extensions
 @using System.Extensions.Collections.Generic
-@using NaemZZ.Core.Dto
+@using Blazicons
 @using NaemZZ.Components.Dialogs
+@using NaemZZ.Core.Dto
+@using Tjt.AspNetCore.WebAssembly.Animation
 
 @inject IFirmManagementService Firms
 @inject IDialogService DialogService
@@ -11,12 +13,14 @@
 <div class="flex flex-col gap-4 p-4 overflow-auto h-full">
     <div class="flex items-center justify-between">
         <h1 class="text-lg font-semibold">Фирми</h1>
-        <Button Color="PaletteColor.Primary" OnClick="@(() => EditAsync(null))">Добави фирма</Button>
+        <Button Color="PaletteColor.Primary" OnClick="@(() => EditAsync(null))">
+            Добави фирма
+        </Button>
     </div>
      
      <PageAlert Class="my-2"></PageAlert>
     
-    <Card Classes="@(new(){ Base = "h-full", Body = "flex flex-col gap-2"})">
+    <Card Classes="@(new(){ Base = "h-full", Body = "flex flex-col gap-2 overflow-y-auto"})">
         <CardHeader>
             <Field class="p-2 w-full">
                 <FieldLabel>@L["Търсене по име"]</FieldLabel>
@@ -33,8 +37,30 @@
                         <div class="font-semibold">@company.Name</div>
                         <div class="text-sm opacity-70">@company.BULSTAT · @company.Address</div>
                         <div class="text-xs opacity-70">Шаблон: @(_templates.FirstOrDefault(x => x.Id == company.ContractTemplateId)?.Name ?? "По подразбиране")</div>
+                   
+                        <div class="text-sm opacity-70">Наемодатели: @company.LandlordCount</div>
+                        <div class="text-sm opacity-70">Имоти: @company.PropertyCount</div>
+                        <div class="text-sm opacity-70">Площ: @company.PropertyAmount дка</div>
                     </div>
-                    <Button Size="ThemeSize.Small" Variant="Variant.Flat" OnClick="@(() => EditAsync(company))">Редакция</Button>
+
+                    <div class="flex items-center gap-2">
+                        <Button Size="ThemeSize.Small"
+                                Variant="Variant.Flat"
+                                OnClick="@(() => EditAsync(company))">
+                            Редакция
+                        </Button>
+
+                        <Button Tooltip="@L["Изтрий"]"
+                                IconOnly
+                                Size="ThemeSize.Small"
+                                Color="PaletteColor.Error"
+                                Variant="Variant.Flat"
+                                OnClick="@(() => DeleteCommand.ExecuteAsync(company.Id))"
+                                IsBusy="@(DeleteCommand.IsDisabled)">
+                            <SvgInlineIcon Svg="@BootstrapIcon.Trash" />
+                        </Button>
+                    </div>
+                   
                 </div>
             }
         </CardContent>
@@ -46,19 +72,26 @@
     private IReadOnlyList<FirmDto> _companies = [];
     private IReadOnlyList<ContractTemplate> _templates = [];
     private string? _search;
-    
+
     protected override async Task OnInitializedAsync() => await ReloadAsync();
-    
+
+    private readonly AsyncReactiveCommand<int> DeleteCommand;
+
+    public CompaniesPage()
+    {
+        DeleteCommand = new AsyncReactiveCommand<int>().WithSubscribe(DeleteCompany).DisposeWith(this);
+    }
+
     private async Task ReloadAsync()
     {
         _companies = await Firms.ListAsync();
         _templates = await Firms.ListTemplatesAsync();
     }
-    
+
     private async Task EditAsync(FirmDto? company)
     {
         AlertManager.Alerts.Clear();
-        
+
         var copy = company is null ? new FirmDto() : new FirmDto
         {
             Id = company.Id, Name = company.Name, Address = company.Address,
@@ -69,9 +102,9 @@
         var dialog = await DialogService.ShowAsync<CompanyDialog>(
             company is null ? "Нова фирма" : "Редакция на фирма",
             new DialogParameters { [nameof(CompanyDialog.Company)] = copy }, new DialogOptions());
-        
+
         var result = await dialog.Result;
-        
+
         if (result is { Cancelled: false, Data: FirmDto edited })
         {
             try
@@ -81,8 +114,32 @@
             }
             catch (Exception ex)
             {
-               await AlertErrorAsync(ex);
+                await AlertErrorAsync(ex);
             }
+        }
+    }
+
+    private async Task DeleteCompany(int id)
+    {
+        var confirm = await DialogService.ShowMessageBox(
+            L["Потвърждение"].ToString(),
+            L["Наистина ли искате да изтриете този запис?"].ToString(),
+            yesText: L["Изтрий"].ToString(),
+            cancelText: L["Откажи"].ToString(),
+            options: new DialogOptions { MaxWidth = "sm", CloseButton = true, TransitionEnter = AnimateBook.ZoomEntrances.ZoomIn.Build() });
+      
+            if (confirm != true) return;
+
+        try
+        {
+
+            await Firms.DeleteAsync(id);
+            await ReloadAsync();
+            await NotificationService.Success("Записът е изтрит.");
+        }
+        catch (Exception ex)
+        {
+            await HandleErrorAsync(ex);
         }
     }
 }

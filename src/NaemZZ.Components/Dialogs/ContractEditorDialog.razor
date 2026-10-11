@@ -23,25 +23,20 @@
 
 <Dialog>
     <ChildContent>
-        @if (_loading)
-        {
-            <p class="p-6">Зареждане на договора...</p>
-        }
-        else if (_error is not null)
-        {
-            <p class="p-6 text-danger">@_error</p>
-        }
-        else
-        {
+
+        <PageAlert class="my-2" Key="@this"/>
+
+        <LoadingIndicator Class="flex flex-col gap-3 min-h-0 h-full" Initializing="@(_template is null)" Visible="@(IsLoading.Value)" FadeIn="true">
+
             <div class="flex flex-col gap-3 min-h-0 h-full">
                 <div class="flex flex-wrap items-center justify-between gap-2">
                     <div>
-                        <h2 class="font-semibold">@(_editingTemplate ? "Редакция на шаблон" : "Договор за наем")</h2>
+                        <h2 class="font-semibold">@(_editingTemplate ? "Редакция на шаблон" : "")</h2>
                         <p class="text-sm opacity-70">@_template!.Name</p>
                     </div>
                     <div class="flex flex-wrap gap-2">
                         @if (!_editingTemplate)
-                        {                           
+                        {
                             <Button Size="ThemeSize.Small"
                                     Variant="Variant.Flat"
                                     OnClick="@EditTemplateAsync">
@@ -57,7 +52,11 @@
                         else
                         {
                             <Button Size="ThemeSize.Small" Variant="Variant.Flat" OnClick="@BackToContractAsync">Назад</Button>
-                            <Button Size="ThemeSize.Small" Color="PaletteColor.Primary" OnClick="@SaveTemplateAsync">Запази шаблона</Button>
+                            <Button Size="ThemeSize.Small" Color="PaletteColor.Primary"
+                                    IsBusy="@SaveCommand.IsDisabled"
+                                    OnClick="@SaveCommand.InvokeAsync">
+                                Запази шаблона
+                            </Button>
                         }
                         <Button Size="ThemeSize.Small" Variant="Variant.Flat" OnClick="@(DialogReference.CancelAsync)">Затвори</Button>
                     </div>
@@ -76,7 +75,7 @@
                 }
 
                 <div class="min-h-[420px] h-full rounded-lg border border-divider bg-white text-black p-4">
-                    <TinyMceEditor @key="_editorKey" 
+                    <TinyMceEditor @key="_editorKey"
                                    @ref="_editor"
                                    @bind-Value="EditorHtml"
                                    Conf="@_editorConfig"
@@ -84,7 +83,10 @@
                                    ClassName="contract-tinymce-editor h-full" />
                 </div>
             </div>
-        }
+
+        </LoadingIndicator>
+
+        
     </ChildContent>
 </Dialog>
 
@@ -112,12 +114,17 @@
     private string _templateName = "";
     private string _contractHtml = "";
     private string _templateHtml = "";
-    private string? _error;
-    private bool _loading = true;
     private bool _editingTemplate;
     private int _editorKey;
     private IJSObjectReference? _printModule;
 
+    private readonly AsyncReactiveCommand SaveCommand;
+
+    public ContractEditorDialog()
+    {
+        SaveCommand = new AsyncReactiveCommand().WithSubscribe(SaveTemplateAsync).DisposeWith(this);
+        
+    }
     // TinyMceEditor exposes Value/ValueChanged, not GetHtmlAsync/SetHtmlAsync.
     // Keep the two editing buffers separate so template changes don't overwrite a contract.
     private string EditorHtml
@@ -143,15 +150,17 @@
         ["language_url"] = "/libs/tinymce/langs/bg_BG.js",
         ["content_style"] = """
     html, body {
-        background: white;
+         background: #e5e5e5;
     }
 
     body {
-        font-family: 'Book Antiqua', 'Times New Roman', serif;
-        font-size: 11pt;
-        line-height: 1.25;
-        color: #000;
-        margin: 15mm;
+        width: 210mm;
+        min-height: 297mm;
+        box-sizing: border-box;
+        margin: 20px auto;
+        padding: 15.5mm;
+        background: white;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.15);
     }
 
     p {
@@ -174,11 +183,7 @@
     }
     """,
 
-        ["font_family_formats"] =
-    "Book Antiqua=Book Antiqua,serif;" +
-    "Times New Roman=Times New Roman,serif;" +
-    "Arial=Arial,sans-serif",
-
+        ["font_family_formats"] = "Book Antiqua=Book Antiqua,serif;Times New Roman=Times New Roman,serif;Arial=Arial,sans-serif",
         ["font_size_formats"] = "10pt 11pt 12pt 14pt 16pt 18pt 20pt",
         // Keep original inline styles, classes and table attributes where possible.
         ["valid_elements"] = "*[*]",
@@ -197,8 +202,10 @@
             _templateHtml = _template.Html;
             _contractHtml = doc.Html;
         }
-        catch (Exception ex) { _error = ex.Message; }
-        finally { _loading = false; }
+        catch (Exception ex) 
+        { 
+           await AlertErrorAsync(ex, key: this);
+        }
     }
 
     private Task EditTemplateAsync()
@@ -244,7 +251,7 @@
         }
         catch (Exception ex)
         {
-            _error = ex.Message;
+            await AlertErrorAsync(ex, key: this);
         }
     }
 
@@ -265,9 +272,9 @@
             }
             catch (Exception ex)
             {
-               Logger.LogError(ex, "Error disposing print module");
+                Logger.LogError(ex, "Error disposing print module");
             }
-           
+
         }
         return base.DisposeAsync(disposing);
     }

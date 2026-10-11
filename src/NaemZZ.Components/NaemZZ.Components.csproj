@@ -15,21 +15,21 @@
    
     <PackageReference Include="BlazorDatasheet" Version="0.21.0" />
     <PackageReference Include="Microsoft.AspNetCore.Components.Web" Version="10.0.12" />
-	  <PackageReference Include="Tjt.AspNetCore.Components" Version="1.0.1" />
-	  <PackageReference Include="Tjt.AspNetCore.Components.Charts" Version="1.0.1" />
-	  <PackageReference Include="Tjt.AspNetCore.Components.Manager" Version="1.0.1" />
-	  <PackageReference Include="Tjt.AspNetCore.Components.State" Version="1.0.1" />
-	  <PackageReference Include="Tjt.AspNetCore.Components.Web" Version="1.0.1" />
-	  <PackageReference Include="Tjt.AspNetCore.Components.Web.BrowserWindowSize" Version="1.0.1" />
-	  <PackageReference Include="Tjt.AspNetCore.Components.WebAssembly" Version="1.0.1" />
-	  <PackageReference Include="Tjt.AspNetCore.WebAssembly" Version="1.0.1" />
-	  <PackageReference Include="Tjt.AspNetCore.WebAssembly.Animation" Version="1.0.1" />
-	  <PackageReference Include="Tjt.AspNetCore.WebAssembly.Theming" Version="1.0.1" />
-	  <PackageReference Include="Tjt.AspNetCore.WebAssembly.Theming.Components" Version="1.0.1" />
-	  <PackageReference Include="Tjt.Grid" Version="1.0.1" />
-	  <PackageReference Include="Tjt.Grid.Blazor" Version="1.0.1" />
-	  <PackageReference Include="Tjt.Icons.FontAwesome" Version="1.0.1" />
-	  <PackageReference Include="Tjt.Lookup" Version="1.0.1" />
+	  <PackageReference Include="Tjt.AspNetCore.Components" Version="1.0.2" />
+	  <PackageReference Include="Tjt.AspNetCore.Components.Charts" Version="1.0.2" />
+	  <PackageReference Include="Tjt.AspNetCore.Components.Manager" Version="1.0.2" />
+	  <PackageReference Include="Tjt.AspNetCore.Components.State" Version="1.0.2" />
+	  <PackageReference Include="Tjt.AspNetCore.Components.Web" Version="1.0.2" />
+	  <PackageReference Include="Tjt.AspNetCore.Components.Web.BrowserWindowSize" Version="1.0.2" />
+	  <PackageReference Include="Tjt.AspNetCore.Components.WebAssembly" Version="1.0.2" />
+	  <PackageReference Include="Tjt.AspNetCore.WebAssembly" Version="1.0.2" />
+	  <PackageReference Include="Tjt.AspNetCore.WebAssembly.Animation" Version="1.0.2" />
+	  <PackageReference Include="Tjt.AspNetCore.WebAssembly.Theming" Version="1.0.2" />
+	  <PackageReference Include="Tjt.AspNetCore.WebAssembly.Theming.Components" Version="1.0.2" />
+	  <PackageReference Include="Tjt.Grid" Version="1.0.2" />
+	  <PackageReference Include="Tjt.Grid.Blazor" Version="1.0.2" />
+	  <PackageReference Include="Tjt.Icons.FontAwesome" Version="1.0.2" />
+	  <PackageReference Include="Tjt.Lookup" Version="1.0.2" />
   </ItemGroup>
 
   <ItemGroup>

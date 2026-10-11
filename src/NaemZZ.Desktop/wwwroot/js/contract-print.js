@@ -18,13 +18,14 @@ export function printHtml(html) {
     <style>
         @page {
             size: A4;
-            margin: 15mm;
+            margin: 20mm;
         }
 
         html, body {
+            width: auto;
             margin: 0;
             padding: 0;
-            background: white;
+            box-shadow: none;
         }
 
         body {

@@ -1,15 +1,16 @@
+using AutoMapper;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Components;
 using Microsoft.Extensions.DependencyInjection;
 using NaemZZ.Components.Dialogs;
-using NaemZZ.Core.Entities;
+using NaemZZ.Components.Events;
 using NaemZZ.Core.Dto;
-using AutoMapper;
+using NaemZZ.Core.Entities;
 using NaemZZ.Core.Interfaces;
 using NaemZZ.Core.Validation;
 using R3;
-using Tjt.AspNetCore.WebAssembly.Theming.Components;
 using Tjt.AspNetCore.WebAssembly.Animation;
+using Tjt.AspNetCore.WebAssembly.Theming.Components;
 
 namespace NaemZZ.Components.Pages;
 
@@ -39,14 +40,25 @@ public partial class LandlordsPage : BaseDomComponent
 
     private async Task<bool> ConfirmLeaveAsync()
     {
-        if (!HasUnsavedChanges) return true;
+        if (!HasUnsavedChanges)
+        {
+            return true;
+        }
         // Three choices: Yes = save, No = discard, Cancel = stay.
         var answer = await DialogService.ShowMessageBox(
             "Незапазени промени",
             "Има незапазени промени. Да ги запазя ли преди преминаване към друг наемодател?",
             yesText: "Запази", noText: "Без запис", cancelText: "Отказ");
-        if (answer is null) return false;
-        if (answer == false) return true;
+        if (answer is null)
+        {
+            return false;
+        }
+
+        if (answer == false)
+        {
+            return true;
+        }
+
         return await SaveCurrentAsync();
     }
 
@@ -100,13 +112,18 @@ public partial class LandlordsPage : BaseDomComponent
         _landlords = await Service.GetListAsync(SearchFilter.Value);
         // Filtering the list must never discard the currently edited record.
         if (_current is null && _landlords.Count > 0 && !_suppressSelection)
+        {
             await Select(_landlords[0]);
+        }
     }
 
     private async Task PrepareCurrentLocationsAsync()
     {
-        if (_current is null) return;
-        
+        if (_current is null)
+        {
+            return;
+        }
+
         var properties = _current.IMOTIs.ToArray();
         
         foreach (var region in properties.Select(x => x.EKATTE_AREA).OfType<int>().Distinct())
@@ -168,24 +185,38 @@ public partial class LandlordsPage : BaseDomComponent
 
     private async Task OnPropertyRegionChanged(PropertyDto property, int? id)
     {
-        if (property.EKATTE_AREA == id) return;
+        if (property.EKATTE_AREA == id)
+        {
+            return;
+        }
+
         property.EKATTE_AREA = id;
         property.EKATTE_MUNICIPALITY = null;
         property.EKATTE_CITY = null;
         
         
         
-        if (id is { } region) await EnsureMunicipalitiesAsync(region);
+        if (id is { } region)
+        {
+            await EnsureMunicipalitiesAsync(region);
+        }
     }
 
     private async Task OnPropertyMunicipalityChanged(PropertyDto property, int? id)
     {
-        if (property.EKATTE_MUNICIPALITY == id) return;
+        if (property.EKATTE_MUNICIPALITY == id)
+        {
+            return;
+        }
+
         property.EKATTE_MUNICIPALITY = id;
         property.EKATTE_CITY = null;
         
         
-        if (id is { } municipality) await EnsureSettlementsAsync(municipality);
+        if (id is { } municipality)
+        {
+            await EnsureSettlementsAsync(municipality);
+        }
     }
 
     private static void OnPropertySettlementChanged(PropertyDto property, int? id)
@@ -196,8 +227,16 @@ public partial class LandlordsPage : BaseDomComponent
 
     private async Task Select(LandlordListDto landlord)
     {
-        if (_selectedLandlordId == landlord.ID && _current is not null) return;
-        if (!await ConfirmLeaveAsync()) return;
+        if (_selectedLandlordId == landlord.ID && _current is not null)
+        {
+            return;
+        }
+
+        if (!await ConfirmLeaveAsync())
+        {
+            return;
+        }
+
         var version = ++_selectionVersion;
         _isPropertyEditMode = false;
         _propertyBackup = null;
@@ -208,20 +247,35 @@ public partial class LandlordsPage : BaseDomComponent
         try
         {
             var detail = await Service.GetAsync(landlord.ID);
-            if (version != _selectionVersion) return;
+            if (version != _selectionVersion)
+            {
+                return;
+            }
+
             _current = detail;
-            if (detail is not null) _editor.Open(detail);
+            if (detail is not null)
+            {
+                _editor.Open(detail);
+            }
+
             await PrepareCurrentLocationsAsync();
         }
         finally
         {
-            if (version == _selectionVersion) _isLoadingLandlord = false;
+            if (version == _selectionVersion)
+            {
+                _isLoadingLandlord = false;
+            }
         }
     }
 
     private async Task AddLandlord()
     {
-        if (!await ConfirmLeaveAsync()) return;
+        if (!await ConfirmLeaveAsync())
+        {
+            return;
+        }
+
         ++_selectionVersion;
         _isLoadingLandlord = false;
         _isPropertyEditMode = false;
@@ -234,14 +288,22 @@ public partial class LandlordsPage : BaseDomComponent
 
     private async Task DeleteLandlord()
     {
-        if (_current is null) return;
+        if (_current is null)
+        {
+            return;
+        }
+
         var confirm = await DialogService.ShowMessageBox(
-            L["Изтрий"].ToString(),
-            L["Наистина ли искате да изтриете този наемодател?"].ToString(),
+            L["Потвърждение"].ToString(),
+            L["Наистина ли искате да изтриете този запис?"].ToString(),
             yesText: L["Изтрий"].ToString(),
             cancelText: L["Откажи"].ToString(),
-            options: new DialogOptions { MaxWidth = "sm", CloseButton = false, TransitionEnter = AnimateBook.ZoomEntrances.ZoomIn.Build() });
-        if (confirm != true) return;
+            options: new DialogOptions { MaxWidth = "sm", CloseButton = true, TransitionEnter = AnimateBook.ZoomEntrances.ZoomIn.Build() });
+        if (confirm != true)
+        {
+            return;
+        }
+
         try
         {
             var deletedId = _current.ID;
@@ -263,7 +325,11 @@ public partial class LandlordsPage : BaseDomComponent
 
     private void TogglePropertyEditMode()
     {
-        if (_current is null) return;
+        if (_current is null)
+        {
+            return;
+        }
+
         if (!_isPropertyEditMode)
         {
             _propertyBackup = Mapper.Map<List<PropertyDto>>(_current.IMOTIs);
@@ -303,7 +369,11 @@ public partial class LandlordsPage : BaseDomComponent
 
     private void PasteProperty(PropertyDto target)
     {
-        if (_propertyClipboard is null) return;
+        if (_propertyClipboard is null)
+        {
+            return;
+        }
+
         var originalId = target.Id;
         var ownerId = target.LandlordId;
         Mapper.Map(_propertyClipboard, target);
@@ -347,7 +417,11 @@ public partial class LandlordsPage : BaseDomComponent
 
     private async Task<bool> SaveCurrentAsync()
     {
-        if (IsProcessing.Value || _current is null) return false;
+        if (IsProcessing.Value || _current is null)
+        {
+            return false;
+        }
+
         using var processing = SetProcessing();
         _showValidation = true;
         await InvokeAsync(StateHasChanged);
@@ -356,9 +430,13 @@ public partial class LandlordsPage : BaseDomComponent
         {
             var current = _current;
             if (current.ID == 0)
+            {
                 await Service.CreateAsync(current);
+            }
             else
+            {
                 await Service.UpdateAsync(current);
+            }
 
             _selectedLandlordId = current.ID;
             _showValidation = false;
@@ -366,6 +444,9 @@ public partial class LandlordsPage : BaseDomComponent
             _isPropertyEditMode = false;
             _editor.MarkSaved();
             _landlords = await Service.GetListAsync(SearchFilter.Value);
+
+            MessageBroker.Publish(new RefreshEvent());
+
             await NotificationService.Success("Промените са записани.");
             return true;
         }
@@ -382,61 +463,32 @@ public partial class LandlordsPage : BaseDomComponent
         }
     }
 
-    private async Task OpenTemplatesDialogAsync()
-    {
-        var dialog = await DialogService.ShowAsync<ContractTemplatesDialog>(
-            "Шаблони на договори", new DialogParameters(),
-            new DialogOptions { MaxWidth = "6xl", FullWidth = true, FullScreen = true });
-        await dialog.Result;
-    }
-
-    private async Task OpenFirmDialogAsync()
-    {
-        var source = _firms.FirstOrDefault(x => x.Id == _current?.FIRM_ID);
-        var company = source is null ? new FirmDto() : Mapper.Map<FirmDto>(source);
-        
-        var dialog = await DialogService.ShowAsync<CompanyDialog>(
-            source is null ? "Нова фирма" : "Редакция на фирма",
-            new DialogParameters
-            {
-                [nameof(CompanyDialog.Company)] = company
-            }, new DialogOptions());
-
-        var result = await dialog.Result;
-        if (result is { Cancelled: false, Data: FirmDto firm })
-        {
-           await SaveCompanyAsync(firm);
-        }
-    }
-
-    private async Task SaveCompanyAsync(FirmDto company)
-    {
-        try
-        {
-            var saved = await FirmManagement.SaveAsync(company);
-            _firms = await Lookups.GetFirmsAsync();
-            if (_current is not null)
-            {
-                _current.FIRM_ID = saved.Id;
-                RecordEdit("Променена фирма");
-            }
-
-            await NotificationService.Success("Фирмата е записана.");
-        }
-        catch (Exception ex)
-        {
-            await NotificationService.Error(ex.Message);
-        }
-    }
-
     private async Task PrintAsync()
     {
-        if (_current is null) return;
+        if (_current is null)
+        {
+            return;
+        }
+
         try
         {
-            if (_current.ID == 0) { await NotificationService.Error("Първо запазете наемодателя."); return; }
+            if (_current.ID == 0) { 
+                await NotificationService.Error("Първо запазете наемодателя."); 
+                return;
+            }
+
             var contractLandlord = await Service.GetForContractAsync(_current.ID);
-            if (contractLandlord is null) return;
+            if (contractLandlord is null)
+            {
+                return;
+            }
+
+            if (contractLandlord.FIRM_ID is null) 
+            {
+                await NotificationService.Error("Моля, изберете фирма за наемодателя.");
+                return; 
+            }
+
             var dialog = await DialogService.ShowAsync<ContractEditorDialog>(
                 "Договор за наем", new DialogParameters
                 {

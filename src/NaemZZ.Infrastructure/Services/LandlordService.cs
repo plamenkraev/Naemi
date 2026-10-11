@@ -5,6 +5,7 @@ using NaemZZ.Core.Entities;
 using NaemZZ.Core.Interfaces;
 using NaemZZ.Core.Validation;
 using NaemZZ.Infrastructure.Data;
+using System.Extensions.Collections.Generic;
 
 namespace NaemZZ.Infrastructure.Services;
 
@@ -14,24 +15,58 @@ public sealed class LandlordService(IDbContextFactory<NaemZZDbContext> factory, 
     public async Task<IReadOnlyList<LandlordListDto>> GetListAsync(string? searchText = null, CancellationToken ct = default)
     {
         await using var db = await factory.CreateDbContextAsync(ct);
-        var query = db.NAEMODATELIs.AsNoTracking();
-        if (!string.IsNullOrWhiteSpace(searchText))
-        {
-            var pattern = searchText.Trim();
-            query = query.Where(x => x.NAME != null && x.NAME.Contains(pattern));
-        }
-        return await query.OrderBy(x => x.NAME)
+
+        var landlords = await db.Landlords
+            .AsNoTracking()
+            .OrderBy(x => x.NAME)
             .Select(x => new LandlordListDto
             {
-                ID = x.ID, NAME = x.NAME, SURNAME = x.SURNAME,
-                LASTNAME = x.LASTNAME, PropertyCount = x.IMOTIs.Count
-            }).ToListAsync(ct);
+                ID = x.ID,
+                NAME = x.NAME,
+                SURNAME = x.SURNAME,
+                LASTNAME = x.LASTNAME,
+                PropertyCount = x.IMOTIs.Count
+            })
+            .ToListAsync(ct);
+
+        if (!string.IsNullOrWhiteSpace(searchText))
+        {
+            var search = searchText.Trim();
+
+            landlords = [.. landlords
+                    .Where(x => x.NAME?.Contains( search, StringComparison.CurrentCultureIgnoreCase) == true
+                            ||  x.SURNAME?.Contains( search, StringComparison.CurrentCultureIgnoreCase) == true
+                            ||  x.LASTNAME?.Contains( search, StringComparison.CurrentCultureIgnoreCase) == true)
+                ];
+        }
+
+        return landlords;
     }
+
+    public async Task<(int LandlordCount, int PropertyCount, decimal PropertyAmount)> GetInfoAsync(int? companyId = null, CancellationToken ct = default)
+    {
+        await using var db = await factory.CreateDbContextAsync(ct);
+        
+        var entity = await db.Landlords.AsNoTracking()
+            .Include(x => x.IMOTIs).AsSplitQuery()
+            .WhereIIf(companyId.HasValue, x=> x.FIRM_ID == companyId)
+            .GroupBy(x => 1)
+            .Select(g => new 
+            { 
+                LandlordCount = g.Count(),
+                PropertyCount = g.Sum(x => x.IMOTIs.Count),
+                PropertyAmount = g.Sum(x => x.IMOTIs.Sum(s=> s.PLOST)),
+            })
+            .SingleOrDefaultAsync(ct);
+
+        return entity is null ? (0, 0, 0) : (entity.LandlordCount, entity.PropertyCount, entity.PropertyAmount.GetValueOrDefault());
+    }
+
 
     public async Task<LandlordDto?> GetAsync(int id, CancellationToken ct = default)
     {
         await using var db = await factory.CreateDbContextAsync(ct);
-        var entity = await db.NAEMODATELIs.AsNoTracking()
+        var entity = await db.Landlords.AsNoTracking()
             .Include(x => x.IMOTIs).AsSplitQuery()
             .SingleOrDefaultAsync(x => x.ID == id, ct);
         return entity is null ? null : mapper.Map<LandlordDto>(entity);
@@ -40,7 +75,7 @@ public sealed class LandlordService(IDbContextFactory<NaemZZDbContext> factory, 
     public async Task<Landlord?> GetForContractAsync(int id, CancellationToken ct = default)
     {
         await using var db = await factory.CreateDbContextAsync(ct);
-        return await db.NAEMODATELIs.AsNoTracking()
+        return await db.Landlords.AsNoTracking()
             .Include(x => x.IMOTIs).ThenInclude(x => x.PropertyCategory)
             .Include(x => x.IMOTIs).ThenInclude(x => x.Region)
             .Include(x => x.IMOTIs).ThenInclude(x => x.Municipality)
@@ -62,13 +97,13 @@ public sealed class LandlordService(IDbContextFactory<NaemZZDbContext> factory, 
         Validate(dto, mapper);
         await using var db = await factory.CreateDbContextAsync(ct);
         var entity = mapper.Map<Landlord>(dto);
-        db.NAEMODATELIs.Add(entity);
+        db.Landlords.Add(entity);
         var created = new List<Property>();
         foreach (var p in dto.IMOTIs)
         {
             var child = mapper.Map<Property>(p);
             child.Landlord = entity;
-            db.IMOTIs.Add(child);
+            db.Properties.Add(child);
             created.Add(child);
         }
         await db.SaveChangesAsync(ct);
@@ -89,11 +124,11 @@ public sealed class LandlordService(IDbContextFactory<NaemZZDbContext> factory, 
         Validate(dto, mapper);
         await using var db = await factory.CreateDbContextAsync(ct);
         await using var transaction = await db.Database.BeginTransactionAsync(ct);
-        var entity = await db.NAEMODATELIs.SingleAsync(x => x.ID == dto.ID, ct);
+        var entity = await db.Landlords.SingleAsync(x => x.ID == dto.ID, ct);
         mapper.Map(dto, entity);
-        var stored = await db.IMOTIs.Where(x => x.LandlordId == dto.ID).ToListAsync(ct);
+        var stored = await db.Properties.Where(x => x.LandlordId == dto.ID).ToListAsync(ct);
         var incomingIds = dto.IMOTIs.Where(x => x.Id != 0).Select(x => x.Id).ToHashSet();
-        db.IMOTIs.RemoveRange(stored.Where(x => !incomingIds.Contains(x.Id)));
+        db.Properties.RemoveRange(stored.Where(x => !incomingIds.Contains(x.Id)));
         var byId = stored.ToDictionary(x => x.Id);
         var additions = new List<(PropertyDto dto, Property entity)>();
         foreach (var property in dto.IMOTIs)
@@ -102,7 +137,7 @@ public sealed class LandlordService(IDbContextFactory<NaemZZDbContext> factory, 
             {
                 var child = mapper.Map<Property>(property);
                 child.Landlord = entity;
-                db.IMOTIs.Add(child);
+                db.Properties.Add(child);
                 additions.Add((property, child));
             }
             else
@@ -126,10 +161,10 @@ public sealed class LandlordService(IDbContextFactory<NaemZZDbContext> factory, 
         if (id <= 0) return;
         await using var db = await factory.CreateDbContextAsync(ct);
         await using var transaction = await db.Database.BeginTransactionAsync(ct);
-        var children = await db.IMOTIs.Where(x => x.LandlordId == id).ToListAsync(ct);
-        db.IMOTIs.RemoveRange(children);
-        var entity = await db.NAEMODATELIs.SingleOrDefaultAsync(x => x.ID == id, ct);
-        if (entity is not null) db.NAEMODATELIs.Remove(entity);
+        var children = await db.Properties.Where(x => x.LandlordId == id).ToListAsync(ct);
+        db.Properties.RemoveRange(children);
+        var entity = await db.Landlords.SingleOrDefaultAsync(x => x.ID == id, ct);
+        if (entity is not null) db.Landlords.Remove(entity);
         await db.SaveChangesAsync(ct);
         await transaction.CommitAsync(ct);
     }

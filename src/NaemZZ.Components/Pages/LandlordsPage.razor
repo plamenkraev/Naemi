@@ -11,7 +11,7 @@
         <Field class="p-2">
             <FieldLabel>Търсене по име</FieldLabel>
             <FieldBody>
-                <ThrottleInput ShowEndIcon="true" Placeholder="Търсене..." @bind-Value="SearchFilter.Value"/>
+                <ThrottleInput ShowEndIcon="true" Placeholder="Търсене..." @bind-Value="SearchFilter.Value" />
             </FieldBody>
         </Field>
         <div class="min-h-0 flex-1 overflow-y-auto">
@@ -34,34 +34,57 @@
     </aside>
 
     <div class="flex min-h-0 min-w-0 flex-1 flex-col gap-4 overflow-y-auto p-4" @onfocusout="@(() => RecordEdit())">
-        <div class="flex flex-wrap items-center justify-between gap-2">
+        <div class="flex flex-wrap items-center  gap-2">
             <h1 class="text-lg font-semibold">Договори за наем</h1>
-            <div class="flex items-center gap-2">
+            <div class="flex items-center gap-2 ml-10">
+                <Button IconOnly
+                        Tooltip="Добави наемодател"
+                        Size="ThemeSize.Small"
+                        Variant="Variant.Solid"
+                        OnClick="@AddLandlord">
+                    <SvgInlineIcon Svg="@BootstrapIcon.Plus" />
+                </Button>
+                <Button Tooltip="@L["Изтрий"]"
+                        IconOnly
+                        Size="ThemeSize.Small"
+                        Color="PaletteColor.Error"
+                        Variant="Variant.Solid"
+                        OnClick="@DeleteCommand.InvokeAsync"
+                        IsBusy="@(DeleteCommand.IsDisabled)"
+                        IsEnabled="@(_current is not null)">
+                    <SvgInlineIcon Svg="@BootstrapIcon.Trash" />
+                </Button>
+                <Button Tooltip="Запис"
+                        IconOnly
+                        Size="ThemeSize.Small"
+                        Color="PaletteColor.Primary"
+                        Variant="Variant.Solid"
+                        OnClick="@SaveCommand.InvokeAsync"
+                        IsBusy="@(SaveCommand.IsDisabled)" IsEnabled="@(_current is not null)">
+                    <SvgInlineIcon Svg="@FluentUiIcon.Save" />
+
+                </Button>
+                <Button Tooltip="@L["Печат"]"
+                        Size="ThemeSize.Small"
+                        Variant="Variant.Solid"
+                        IconOnly
+                        OnClick="@PrintAsync"
+                        IsEnabled="@(_current is not null)">
+                    <SvgInlineIcon Svg="@BootstrapIcon.Printer" />
+                </Button>
+
+            </div>
+
+            <div class="ml-auto">
                 <Button Size="ThemeSize.Small" Variant="Variant.Flat" OnClick="@Undo" IsEnabled="@(_current is not null && (_editor.CanUndo || HasUnsavedChanges))">↶ Отмени</Button>
                 <Button Size="ThemeSize.Small" Variant="Variant.Flat" OnClick="@Redo" IsEnabled="@_editor.CanRedo">↷ Повтори</Button>
                 <Button Size="ThemeSize.Small" Variant="Variant.Flat" OnClick="@(() => _showHistory = !_showHistory)">История</Button>
-                @if (HasUnsavedChanges) { <span class="text-xs text-warning">● Незапазени промени</span> }
-                <Button Size="ThemeSize.Small" Variant="Variant.Solid" OnClick="@AddLandlord">
-                    Добави наемодател
-                </Button>
-                <Button Size="ThemeSize.Small" Color="PaletteColor.Error" Variant="Variant.Flat"
-                        OnClick="@DeleteCommand.InvokeAsync" 
-                        IsBusy="@(DeleteCommand.IsDisabled)" 
-                        IsEnabled="@(_current is not null)">
-                    Изтрий
-                </Button>
-                <Button Size="ThemeSize.Small"
-                        Color="PaletteColor.Primary" 
-                        OnClick="@SaveCommand.InvokeAsync"
-                        IsBusy="@(SaveCommand.IsDisabled)" IsEnabled="@(_current is not null)">Запис
-                </Button>
-                <Button Size="ThemeSize.Small"
-                        Variant="Variant.Flat"
-                        OnClick="@PrintAsync"
-                        IsEnabled="@(_current is not null)">
-                        Печат
-                </Button>
+                @if (HasUnsavedChanges)
+                {
+                    <span class="text-xs text-warning">● Незапазени промени</span>
+                }
             </div>
+
         </div>
 
         @if (_showHistory && _current is not null)
@@ -73,7 +96,9 @@
                     {
                         var index = i;
                         <button type="button" class="rounded border border-divider px-2 py-1 @(_editor.HistoryIndex == index ? "bg-primary/10 font-semibold" : "")"
-                                @onclick="() => JumpToHistory(index)">@(_editor.History[i])</button>
+                                @onclick="() => JumpToHistory(index)">
+                            @(_editor.History[i])
+                        </button>
                     }
                 </div>
             </div>
@@ -93,29 +118,35 @@
                 <div class="grid grid-cols-1 gap-3 lg:grid-cols-2">
                     <div class="flex flex-col gap-2">
                         <TextField Placeholder="ID" Value="@_current.ID.ToString()" IsEnabled="false"
-                                   Size="ThemeSize.Small"/>
-                        <Select Placeholder="Фирма" Size="ThemeSize.Small" @bind-Value="_current.FIRM_ID"
-                                Items="@_firms" ValueField="@(x => x.Id)" TextField="@(x => x.Name)"/>
-                        <TextField Placeholder="Име" Size="ThemeSize.Small" @bind-Value="_current.NAME" ErrorMessage="@LandlordError("NAME")"/>
-                        <TextField Placeholder="Презиме" Size="ThemeSize.Small" @bind-Value="_current.SURNAME" ErrorMessage="@LandlordError("SURNAME")"/>
-                        <TextField Placeholder="Фамилия" Size="ThemeSize.Small" @bind-Value="_current.LASTNAME" ErrorMessage="@LandlordError("LASTNAME")"/>
+                                   Size="ThemeSize.Small" />
+
+                        <Field>
+                            <FieldBody>
+                                <Select Placeholder="Фирма" Size="ThemeSize.Small" @bind-Value="_current.FIRM_ID"
+                                        Items="@_firms" ValueField="@(x => x.Id)" TextField="@(x => x.Name)" />
+                            </FieldBody>
+                        </Field>
+
+                        <TextField Placeholder="Име" Size="ThemeSize.Small" @bind-Value="_current.NAME" ErrorMessage="@LandlordError("NAME")" />
+                        <TextField Placeholder="Презиме" Size="ThemeSize.Small" @bind-Value="_current.SURNAME" ErrorMessage="@LandlordError("SURNAME")" />
+                        <TextField Placeholder="Фамилия" Size="ThemeSize.Small" @bind-Value="_current.LASTNAME" ErrorMessage="@LandlordError("LASTNAME")" />
                         <LocationCascadeSelect @key="_current"
                                                RegionId="@_current.OBLAST"
                                                RegionIdChanged="@(v => _current.OBLAST = v)"
                                                MunicipalityId="@_current.OBSTINA"
                                                MunicipalityIdChanged="@(v => _current.OBSTINA = v)"
                                                SettlementId="@_current.CITY"
-                                               SettlementIdChanged="@(v => _current.CITY = v)"/>
+                                               SettlementIdChanged="@(v => _current.CITY = v)" />
                     </div>
                     <div class="flex flex-col gap-2">
-                        <TextField Placeholder="Улица" Size="ThemeSize.Small" @bind-Value="_current.STREET" ErrorMessage="@LandlordError("STREET")"/>
-                        <TextField Placeholder="ЕГН" Size="ThemeSize.Small" @bind-Value="_current.EGN" ErrorMessage="@LandlordError("EGN")"/>
+                        <TextField Placeholder="Улица" Size="ThemeSize.Small" @bind-Value="_current.STREET" ErrorMessage="@LandlordError("STREET")" />
+                        <TextField Placeholder="ЕГН" Size="ThemeSize.Small" @bind-Value="_current.EGN" ErrorMessage="@LandlordError("EGN")" />
                         <div class="flex gap-2">
-                            <TextField Placeholder="ЛК №" Size="ThemeSize.Small" @bind-Value="_current.LK" ErrorMessage="@LandlordError("LK")"/>
-                            <DateInput Placeholder="Дата" Size="ThemeSize.Small" DateFormat="dd.MM.yyyy" @bind-Value="_current.LKDATE"/>
+                            <TextField Placeholder="ЛК №" Size="ThemeSize.Small" @bind-Value="_current.LK" ErrorMessage="@LandlordError("LK")" />
+                            <DateInput Placeholder="Дата" Size="ThemeSize.Small" DateFormat="dd.MM.yyyy" @bind-Value="_current.LKDATE" />
                         </div>
-                        <TextField Placeholder="МВР" Size="ThemeSize.Small" @bind-Value="_current.MVR" ErrorMessage="@LandlordError("MVR")"/>
-                        <TextField Placeholder="Телефон" Size="ThemeSize.Small" @bind-Value="_current.Phone"/>
+                        <TextField Placeholder="МВР" Size="ThemeSize.Small" @bind-Value="_current.MVR" ErrorMessage="@LandlordError("MVR")" />
+                        <TextField Placeholder="Телефон" Size="ThemeSize.Small" @bind-Value="_current.Phone" />
                     </div>
                 </div>
             </section>
@@ -125,7 +156,10 @@
                     <div class="flex items-center gap-2">
                         <h2 class="font-semibold">Имоти (@_current.IMOTIs.Count)</h2>
                         <Button Size="ThemeSize.Small" Variant="Variant.Flat"
-                                OnClick="@TogglePropertyEditMode">@(_isPropertyEditMode ? "Край на редакцията" : "Редакция")</Button>
+                                Color="@(_isPropertyEditMode ? PaletteColor.Error : PaletteColor.Default)"
+                                OnClick="@TogglePropertyEditMode">
+                            @(_isPropertyEditMode ? "Отажи промените" : "Редакция")
+                        </Button>
                         @if (_isPropertyEditMode)
                         {
                             <Button Size="ThemeSize.Small" Variant="Variant.Flat" OnClick="@AddProperty">Добави</Button>
@@ -133,155 +167,161 @@
                     </div>
                     <span class="text-sm font-medium">Общо: @(_current.GetTotal.ToString("N3")) дка</span>
                 </div>
-                <div class="min-w-0 overflow-x-auto">
-                    <HtmlGrid TGridItem="PropertyDto" Items="@_current.IMOTIs.AsQueryable()" Hoverable="true" Striped="true"
-                              Class="w-full">
-                        <PropertyColumn Property="@(i => i.Id)" Title="ID" Sortable="true"/>
-                        <TemplateColumn Title="Област">
-                            @if (_isPropertyEditMode)
-                            {
-                                <Select Size="ThemeSize.Small"
-                                        Items="@_regions"
-                                        ValueField="@(x => x.ID)"
-                                        TextField="@(x => x?.NAME)"
-                                        TValue="int?"
-                                        TItem="Region"
-                                        Value="@context.Item.EKATTE_AREA"
-                                        ValueChanged="@(v => OnPropertyRegionChanged(context.Item, v))">
-                                    <ChildContent>
-                                        <AutoCompleteSearch SearchFunc="(x, items)=> Task.FromResult(items.WhereIIf(!x.IIsNullOrEmpty(), w=> (w.NAME).Contains(x, StringComparison.OrdinalIgnoreCase)))" />
-                                    </ChildContent>
-                                </Select>
-                            }
-                            else
-                            {
-                                @RegionName(context.Item.EKATTE_AREA)
-                            }
-                        </TemplateColumn>
-                        <TemplateColumn Title="Община">
-                            @if (_isPropertyEditMode)
-                            {
-                                <Select Size="ThemeSize.Small"
-                                        Items="@MunicipalitiesFor(context.Item)"
-                                        IsEnabled="@(context.Item.EKATTE_AREA is not null)"
-                                        ValueField="@(x => x.ID)"
-                                        TextField="@(x => x?.NAME)"
-                                        TValue="int?"
-                                        TItem="Municipality"
-                                        Value="@context.Item.EKATTE_MUNICIPALITY"
-                                        ValueChanged="@(v => OnPropertyMunicipalityChanged(context.Item, v))">
-                                    <ChildContent>
-                                        <AutoCompleteSearch SearchFunc="(x, items)=> Task.FromResult(items.WhereIIf(!x.IIsNullOrEmpty(), w=> (w.NAME).Contains(x, StringComparison.OrdinalIgnoreCase)))" />
-                                    </ChildContent>
-                                </Select>
-                            }
-                            else
-                            {
-                                @MunicipalityName(context.Item)
-                            }
-                        </TemplateColumn>
-                        <TemplateColumn Title="Населено място">
-                            @if (_isPropertyEditMode)
-                            {
-                                <Select Size="ThemeSize.Small"
-                                        Items="@SettlementsFor(context.Item)"
-                                        IsEnabled="@(context.Item.EKATTE_MUNICIPALITY is not null)"
-                                        ValueField="@(x => x.ID)"
-                                        TextField="@(x => x?.NAME)"
-                                        TValue="int?"
-                                        TItem="Settlement"
-                                        Value="@context.Item.EKATTE_CITY"
-                                        ValueChanged="@(v => OnPropertySettlementChanged(context.Item, v))">
-                                    <ChildContent>
-                                        <AutoCompleteSearch SearchFunc="(x, items)=> Task.FromResult(items.WhereIIf(!x.IIsNullOrEmpty(), w=> (w.NAME).Contains(x, StringComparison.OrdinalIgnoreCase)))" />
-                                    </ChildContent>
-                                </Select>
-                            }
-                            else
-                            {
-                                @SettlementName(context.Item)
-                            }
-                        </TemplateColumn>
-                        <TemplateColumn Title="Местност">
-                            @if (
-                                _isPropertyEditMode)
-                            {
-                                <TextField Size="ThemeSize.Small" @bind-Value="context.Item.TERRAIN"/>
-                            }
-                            else
-                            {
-                                @context.Item.TERRAIN
-                            }
-                        </TemplateColumn>
-                        <TemplateColumn Title="Граници">
-                            @if (_isPropertyEditMode)
-                            {
-                                <TextField Size="ThemeSize.Small" @bind-Value="context.Item.LIMITS"/>
-                            }
-                            else
-                            {
-                                @context.Item.LIMITS
-                            }
-                        </TemplateColumn>
-                        <TemplateColumn Title="Номер">
-                            @if (_isPropertyEditMode)
-                            {
-                                <TextField Size="ThemeSize.Small"
-                                           @bind-Value="context.Item.NOMER"
-                                           ErrorMessage="@PropertyError(context.Item, "NOMER")"/>
-                            }
-                            else
-                            {
-                                @context.Item.NOMER
-                            }
-                        </TemplateColumn>
-                        <TemplateColumn Title="К">
-                            @if (_isPropertyEditMode)
-                            {
-                                <Select Size="ThemeSize.Small"
-                                        Items="@_categories"
-                                        ValueField="@(x => x.ID)"
-                                        TextField="@(x => x?.NAME)"
-                                        @bind-Value="context.Item.CATEGORY">
-                                </Select>
-                            }
-                            else
-                            {
-                                @CategoryName(context.Item.CATEGORY)
-                            }
-                        </TemplateColumn>
-                        <TemplateColumn Title="Декари">
-                            @if (_isPropertyEditMode)
-                            {
-                                <NumericEdit TValue="decimal?" Size="ThemeSize.Small" Step="0.001m"
-                                             @bind-Value="context.Item.PLOST"
-                                             ErrorMessage="@PropertyError(context.Item, "PLOST")"/>
-                            }
-                            else
-                            {
-                                @context.Item.PLOST?.ToString("N3")
-                            }
-                        </TemplateColumn>
-                        @if (_isPropertyEditMode)
-                        {
-                            <TemplateColumn Title="Действия">
-                                <div class="flex gap-1">
-                                    <Button Tooltip="Копирай" IconOnly="true" Size="ThemeSize.Small" Variant="Variant.Light"
-                                            OnClick="@(() => CopyProperty(context.Item))">
-                                        <SvgInlineIcon Svg="@FluentUiIcon.Copy"></SvgInlineIcon>
-                                    </Button>
-                                    <Button Tooltip="Постави" IconOnly="true" Size="ThemeSize.Small" Variant="Variant.Light"
-                                            OnClick="@(() => PasteProperty(context.Item))"
-                                            IsEnabled="@(_propertyClipboard is not null)">
-                                        <SvgInlineIcon Svg="@FluentUiIcon.ClipboardPaste"></SvgInlineIcon>
-                                    </Button>
-                                    <Button Tooltip="Изтрий" Size="ThemeSize.Small" IconOnly="true" Color="PaletteColor.Error" Variant="Variant.Light"
-                                            OnClick="@(() => DeleteProperty(context.Item))">
-                                        <SvgInlineIcon Svg="@FluentUiIcon.Delete"></SvgInlineIcon>
-                                    </Button>
-                                </div>
+                <div class="min-w-0 min-h-0 h-full">
+                    <HtmlGrid TGridItem="PropertyDto" FixedHeaderDataGridHeight="100%" FixedHeader Items="@_current.IMOTIs.AsQueryable()" Hoverable="true" Striped="true"
+                              Class="w-full h-full mb-0">
+                        <LoadingContent>
+
+                        </LoadingContent>
+                        <ChildContent>
+                            <PropertyColumn Property="@(i => i.Id)" Title="ID" Sortable="true" />
+                            <TemplateColumn Title="Област" Width="160">
+                                @if (_isPropertyEditMode)
+                                {
+                                    <Select Size="ThemeSize.Small"
+                                            Items="@_regions"
+                                            ValueField="@(x => x.ID)"
+                                            TextField="@(x => x?.NAME)"
+                                            TValue="int?"
+                                            TItem="Region"
+                                            Value="@context.Item.EKATTE_AREA"
+                                            ValueChanged="@(v => OnPropertyRegionChanged(context.Item, v))">
+                                        <ChildContent>
+                                            <AutoCompleteSearch SearchPlaceholder="Търси..." SearchFunc="(x, items) => Task.FromResult(items.WhereIIf(!x.IIsNullOrEmpty(), w => (w.NAME).Contains(x, StringComparison.OrdinalIgnoreCase)))" />
+                                        </ChildContent>
+                                    </Select>
+                                }
+                                else
+                                {
+                                    @RegionName(context.Item.EKATTE_AREA)
+                                }
                             </TemplateColumn>
-                        }
+                            <TemplateColumn Title="Община" Width="160">
+                                @if (_isPropertyEditMode)
+                                {
+                                    <Select Size="ThemeSize.Small"
+                                            Items="@MunicipalitiesFor(context.Item)"
+                                            IsEnabled="@(context.Item.EKATTE_AREA is not null)"
+                                            ValueField="@(x => x.ID)"
+                                            TextField="@(x => x?.NAME)"
+                                            TValue="int?"
+                                            TItem="Municipality"
+                                            Value="@context.Item.EKATTE_MUNICIPALITY"
+                                            ValueChanged="@(v => OnPropertyMunicipalityChanged(context.Item, v))">
+                                        <ChildContent>
+                                            <AutoCompleteSearch SearchPlaceholder="Търси..." SearchFunc="(x, items) => Task.FromResult(items.WhereIIf(!x.IIsNullOrEmpty(), w => (w.NAME).Contains(x, StringComparison.OrdinalIgnoreCase)))" />
+                                        </ChildContent>
+                                    </Select>
+                                }
+                                else
+                                {
+                                    @MunicipalityName(context.Item)
+                                }
+                            </TemplateColumn>
+                            <TemplateColumn Title="Населено място" Width="160">
+                                @if (_isPropertyEditMode)
+                                {
+                                    <Select Size="ThemeSize.Small"
+                                            Items="@SettlementsFor(context.Item)"
+                                            IsEnabled="@(context.Item.EKATTE_MUNICIPALITY is not null)"
+                                            ValueField="@(x => x.ID)"
+                                            TextField="@(x => x?.NAME)"
+                                            TValue="int?"
+                                            TItem="Settlement"
+                                            Value="@context.Item.EKATTE_CITY"
+                                            ValueChanged="@(v => OnPropertySettlementChanged(context.Item, v))">
+                                        <ChildContent>
+                                            <AutoCompleteSearch SearchPlaceholder="Търси..." SearchFunc="(x, items) => Task.FromResult(items.WhereIIf(!x.IIsNullOrEmpty(), w => (w.NAME).Contains(x, StringComparison.OrdinalIgnoreCase)))" />
+                                        </ChildContent>
+                                    </Select>
+                                }
+                                else
+                                {
+                                    @SettlementName(context.Item)
+                                }
+                            </TemplateColumn>
+                            <TemplateColumn Title="Местност">
+                                @if (
+                                    _isPropertyEditMode)
+                                {
+                                    <TextField Size="ThemeSize.Small" @bind-Value="context.Item.TERRAIN" />
+                                }
+                                else
+                                {
+                                    @context.Item.TERRAIN
+                                }
+                            </TemplateColumn>
+                            <TemplateColumn Title="Граници">
+                                @if (_isPropertyEditMode)
+                                {
+                                    <TextField Size="ThemeSize.Small" @bind-Value="context.Item.LIMITS" />
+                                }
+                                else
+                                {
+                                    @context.Item.LIMITS
+                                }
+                            </TemplateColumn>
+                            <TemplateColumn Title="Номер" SortBy="@(GridSort<PropertyDto>.ByAscending(x => x.NOMER))" Width="120">
+                                @if (_isPropertyEditMode)
+                                {
+                                    <TextField Size="ThemeSize.Small"
+                                               @bind-Value="context.Item.NOMER"
+                                               ErrorMessage="@PropertyError(context.Item, "NOMER")" />
+                                }
+                                else
+                                {
+                                    @context.Item.NOMER
+                                }
+                            </TemplateColumn>
+                            <TemplateColumn Title="К" Width="100">
+                                @if (_isPropertyEditMode)
+                                {
+                                    <Select Size="ThemeSize.Small"
+                                            Items="@_categories"
+                                            ValueField="@(x => x.ID)"
+                                            TextField="@(x => x?.NAME)"
+                                            @bind-Value="context.Item.CATEGORY">
+                                    </Select>
+                                }
+                                else
+                                {
+                                    @CategoryName(context.Item.CATEGORY)
+                                }
+                            </TemplateColumn>
+                            <TemplateColumn Title="Декари" SortBy="@(GridSort<PropertyDto>.ByAscending(x => x.PLOST))" Width="120">
+                                @if (_isPropertyEditMode)
+                                {
+                                    <NumericEdit TValue="decimal?" Size="ThemeSize.Small" Step="0.001m"
+                                                 @bind-Value="context.Item.PLOST"
+                                                 ErrorMessage="@PropertyError(context.Item, "PLOST")" />
+                                }
+                                else
+                                {
+                                    @context.Item.PLOST?.ToString("N3")
+                                }
+                            </TemplateColumn>
+                            @if (_isPropertyEditMode)
+                            {
+                                <TemplateColumn Title="Действия">
+                                    <div class="flex gap-1">
+                                        <Button Tooltip="Копирай" IconOnly="true" Size="ThemeSize.Small" Variant="Variant.Light"
+                                                OnClick="@(() => CopyProperty(context.Item))">
+                                            <SvgInlineIcon Svg="@FluentUiIcon.Copy"></SvgInlineIcon>
+                                        </Button>
+                                        <Button Tooltip="Постави" IconOnly="true" Size="ThemeSize.Small" Variant="Variant.Light"
+                                                OnClick="@(() => PasteProperty(context.Item))"
+                                                IsEnabled="@(_propertyClipboard is not null)">
+                                            <SvgInlineIcon Svg="@FluentUiIcon.ClipboardPaste"></SvgInlineIcon>
+                                        </Button>
+                                        <Button Tooltip="Изтрий" Size="ThemeSize.Small" IconOnly="true" Color="PaletteColor.Error" Variant="Variant.Light"
+                                                OnClick="@(() => DeleteProperty(context.Item))">
+                                            <SvgInlineIcon Svg="@FluentUiIcon.Delete"></SvgInlineIcon>
+                                        </Button>
+                                    </div>
+                                </TemplateColumn>
+                            }
+                        </ChildContent>
+
                     </HtmlGrid>
                 </div>
             </section>

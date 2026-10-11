@@ -55,4 +55,8 @@ public sealed class FirmDto
     public DateTime? RepresentativeIdCardDate { get; set; }
     public string? RepresentativeIdCardIssuer { get; set; }
     public int? ContractTemplateId { get; set; }
+
+    public int LandlordCount { get; set; }
+    public int PropertyCount { get; set; }
+    public decimal PropertyAmount { get; set; }
 }

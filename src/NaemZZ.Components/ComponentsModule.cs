@@ -1,5 +1,6 @@
 using BlazorDatasheet.Extensions;
 using Microsoft.Extensions.DependencyInjection;
+using NaemZZ.Components.Menus;
 using NaemZZ.Components.Themes;
 using NaemZZ.Core.Dto;
 using NaemZZ.Core.Validators;
@@ -8,6 +9,7 @@ using Tjt.AspNetCore.WebAssembly.Animation;
 using Tjt.AspNetCore.WebAssembly.DependencyInjection.Extensions;
 using Tjt.AspNetCore.WebAssembly.Theming;
 using Tjt.AspNetCore.WebAssembly.Theming.Components;
+using Tjt.AspNetCore.WebAssembly.Theming.Navigation;
 using Tjt.Modularity;
 using Tjt.Validators;
 
@@ -22,8 +24,12 @@ public class ComponentsModule : Module
         context.Services.AddBlazorDatasheet();
         context.Services.AddClientAuthentication();
 
-        context.Services.AddValidators(
-            typeof(LandlordValidator).Assembly);
+        context.Services.AddValidators(typeof(LandlordValidator).Assembly);
+
+        Configure<AppNavigationOptions>(options =>
+        {
+            options.MenuContributors.Add(new MenuContributor());
+        });
     }
 
     public static void ConfigureThemes(IServiceCollection services)

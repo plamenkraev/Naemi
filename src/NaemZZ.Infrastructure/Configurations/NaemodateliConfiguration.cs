@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using NaemZZ.Core.Entities;
+using System.Reflection.Emit;
 
 namespace NaemZZ.Infrastructure.Configurations;
 
@@ -23,7 +24,7 @@ public class NaemodateliConfiguration : IEntityTypeConfiguration<Landlord>
         builder.HasOne(n => n.Company)
             .WithMany(f => f.NAEMODATELIs)
             .HasForeignKey(n => n.FIRM_ID)
-            .OnDelete(DeleteBehavior.Restrict);
+            .OnDelete(DeleteBehavior.SetNull);
 
         builder.HasOne(n => n.Region)
             .WithMany(o => o.NAEMODATELIs)

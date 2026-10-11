@@ -1,3 +1,6 @@
+@using System.Extensions
+@using System.Extensions.Collections.Generic
+
 <div class="grid grid-cols-[repeat(auto-fit,minmax(min(100%,140px),1fr))] gap-2 [&>*]:min-w-0 @Class">
     <Select Placeholder="@(ShowLabels ? "Област" : null)"
             Size="ThemeSize.Small"
@@ -6,6 +9,9 @@
             ValueField="@(x => x.ID)"
             TextField="@(x => x?.NAME)"
             @bind-Value:after="OnRegionChangedAsync">
+         <ChildContent>
+            <AutoCompleteSearch SearchPlaceholder="Търси..." SearchFunc="(x, items) => Task.FromResult(items.WhereIIf(!x.IIsNullOrEmpty(), w => (w.NAME).Contains(x, StringComparison.OrdinalIgnoreCase)))" />
+        </ChildContent>
     </Select>
 
     <Select Placeholder="@(ShowLabels ? "Община" : null)"
@@ -16,6 +22,9 @@
             TextField="@(x => x?.NAME)"
             @bind-Value="@MunicipalityId"
             @bind-Value:after="OnMunicipalityChangedAsync">
+        <ChildContent>
+            <AutoCompleteSearch SearchPlaceholder="Търси..." SearchFunc="(x, items) => Task.FromResult(items.WhereIIf(!x.IIsNullOrEmpty(), w => (w.NAME).Contains(x, StringComparison.OrdinalIgnoreCase)))" />
+        </ChildContent>
     </Select>
 
     <Select Placeholder="@(ShowLabels ? "Населено място" : null)"
@@ -26,5 +35,8 @@
             ValueField="@(x => x.ID)"
             @bind-Value="@SettlementId"
             @bind-Value:after="OnSettlementChangedAsync">
+          <ChildContent>
+            <AutoCompleteSearch SearchPlaceholder="Търси..." SearchFunc="(x, items) => Task.FromResult(items.WhereIIf(!x.IIsNullOrEmpty(), w => (w.NAME).Contains(x, StringComparison.OrdinalIgnoreCase)))" />
+        </ChildContent>
     </Select>
 </div>

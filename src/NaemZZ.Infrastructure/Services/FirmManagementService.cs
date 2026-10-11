@@ -11,8 +11,40 @@ public sealed class FirmManagementService(IDbContextFactory<NaemZZDbContext> fac
     public async Task<IReadOnlyList<FirmDto>> ListAsync(CancellationToken ct = default)
     {
         await using var db = await factory.CreateDbContextAsync(ct);
-        return mapper.Map<List<FirmDto>>(await db.Company.AsNoTracking().OrderBy(x => x.Name).ToListAsync(ct));
+
+        var companies = await db.Companies
+            .AsNoTracking()
+            .OrderBy(x => x.Name)
+            .ToListAsync(ct);
+
+        var statistics = await db.Landlords
+            .AsNoTracking()
+            .Where(x => x.FIRM_ID != null)
+            .GroupBy(x => x.FIRM_ID)
+            .Select(g => new
+            {
+                CompanyId = g.Key,
+                LandlordCount = g.Count(),
+                PropertyCount = g.Sum(x => x.IMOTIs.Count),
+                PropertyAmount = g.Sum(x => x.IMOTIs.Sum(p => p.PLOST))
+            })
+            .ToDictionaryAsync(x => x.CompanyId, ct);
+
+        var result = mapper.Map<List<FirmDto>>(companies);
+
+        foreach (var firm in result)
+        {
+            if (statistics.TryGetValue(firm.Id, out var info))
+            {
+                firm.LandlordCount = info.LandlordCount;
+                firm.PropertyCount = info.PropertyCount;
+                firm.PropertyAmount = info.PropertyAmount.GetValueOrDefault();
+            }
+        }
+
+        return result;
     }
+
     public async Task<FirmDto> SaveAsync(FirmDto firm, CancellationToken ct = default)
     {
         if (string.IsNullOrWhiteSpace(firm.Name))
@@ -30,13 +62,13 @@ public sealed class FirmManagementService(IDbContextFactory<NaemZZDbContext> fac
         if (firm.Id == 0)
         {
             var created = mapper.Map<Company>(firm);
-            db.Company.Add(created);
+            db.Companies.Add(created);
             await db.SaveChangesAsync(ct);
             firm.Id = created.Id;
         }
         else
         {
-            var stored = await db.Company.SingleAsync(x => x.Id == firm.Id, ct);
+            var stored = await db.Companies.SingleAsync(x => x.Id == firm.Id, ct);
             mapper.Map(firm, stored);
         }
         await db.SaveChangesAsync(ct);
@@ -69,5 +101,28 @@ public sealed class FirmManagementService(IDbContextFactory<NaemZZDbContext> fac
         }
         await db.SaveChangesAsync(ct);
         return template;
+    }
+
+    public async Task DeleteAsync(int id, CancellationToken ct = default)
+    {
+        await using var db = await factory.CreateDbContextAsync(ct);
+        await using var transaction = await db.Database.BeginTransactionAsync(ct);
+
+        await db.Landlords
+            .Where(x => x.FIRM_ID == id)
+            .ExecuteUpdateAsync(
+                s => s.SetProperty(x => x.FIRM_ID, (int?)null), ct);
+
+        var company = await db.Companies
+            .SingleOrDefaultAsync(x => x.Id == id, ct);
+
+        if (company is not null)
+        {
+            db.Companies.Remove(company);
+            await db.SaveChangesAsync(ct);
+        }
+
+        await transaction.CommitAsync(ct);
+        lookups.InvalidateCache();
     }
 }

@@ -29,7 +29,7 @@
 
     <PageAlert Class="my-2"></PageAlert>
 
-    <LoadingIndicator Class="h-full flex flex-col gap-1" Initializing="@(_selectedTemplate is null)" Visible="@(IsLoading.Value)" FadeIn="true">
+    <LoadingIndicator Class="h-full flex flex-col gap-1" Initializing="@(_name is null)" Visible="@(IsLoading.Value)" FadeIn="true">
         <div class="flex flex-wrap gap-3 bg-surface text-surface-foreground items-end p-3 rounded-lg">
             <div class="flex-1 min-w-56">
                 <Field>
@@ -76,8 +76,6 @@
                            ClassName="contract-tinymce-editor h-full"/>
         </div>
     </LoadingIndicator>
-
-
 </div>
 
 
@@ -125,15 +123,17 @@
         ["language_url"] = "/libs/tinymce/langs/bg_BG.js",
         ["content_style"] = """
     html, body {
-        background: white;
+         background: #e5e5e5;
     }
 
     body {
-        font-family: 'Book Antiqua', 'Times New Roman', serif;
-        font-size: 11pt;
-        line-height: 1.25;
-        color: #000;
-        margin: 15mm;
+        width: 210mm;
+        min-height: 297mm;
+        box-sizing: border-box;
+        margin: 20px auto;
+        padding: 15.5mm;
+        background: white;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.15);
     }
 
     p {

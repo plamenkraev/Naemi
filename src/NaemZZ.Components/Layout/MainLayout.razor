@@ -1,29 +1,99 @@
+@using System.Extensions.Collections.Generic
+@using Tjt.AspNetCore.WebAssembly.Theming.Navigation
 @inherits Tjt.AspNetCore.Components.BaseLayoutComponent
 
 <div class="flex h-screen w-screen flex-col overflow-hidden bg-background text-foreground">
     <header class="flex shrink-0 items-center justify-between gap-3 border-b border-divider bg-appbar-background text-appbar-foreground px-4 py-2">
-        <a href="/" class="text-lg font-semibold">Договори за наем</a>
+       
+        <a href="/" class="text-lg font-semibold">
+            Договори за наем
+
+            <small class="text-xs text-current/60">
+                (Наемодатели: @Info.LandlordCount | Имоти: @Info.PropertyCount - @Info.PropertyAmount.ToString("N3") дка)
+            </small>
+        </a>
+
         <nav class="flex items-center gap-4 text-sm" aria-label="Основно меню">
-            <a href="/">Наемодатели</a>
 
-            <Dropdown
-                Class="mt-2 flex min-w-48">
-                <DropdownTrigger Context="opened">
-                    <span class="cursor-pointer select-none">Настройки</span>
-                </DropdownTrigger>
-                <DropdownMenu>
-                    <DropdownItem OnClick="@(x => Navigation.NavigateTo("/settings/companies"))">
-                        @L["Фирми"]
-                    </DropdownItem>
-                    <DropdownItem OnClick="@(x => Navigation.NavigateTo("/settings/templates"))">
-                        @L["Шаблони на договори"]
-                    </DropdownItem>
-                </DropdownMenu>
-            </Dropdown>
+            @foreach (var menuItem in MainMenu?.Items.Where(w => !w.IsHidden) ?? [])
+            {
+                @if (menuItem.IsLeaf)
+                {
+                    <HtmlLink @key="@menuItem"
+                              Href="@(menuItem.Url)"
+                              role="menuitem"
+                              ActiveClass="active bg-appbar-foreground/20"
+                              Class="cursor-pointer select-none p-1 rounded"
+                              tabindex="-1">
+                        <span class="inline">@menuItem.DisplayName</span>
 
-            <SwitchThemeMode/>
+                    </HtmlLink>
+                }
+                else
+                {
+                    <Dropdown @key="@menuItem" Class="mt-2 flex min-w-48">
+                        <DropdownTrigger Context="opened">
+                            <HtmlLink Href="@menuItem.Url"
+                                      @onclick:preventDefault
+                                      Match="@NavLinkMatch.Prefix"
+                                      ActiveClass="bg-appbar-foreground/20"
+                                      Class="cursor-pointer select-none p-1 rounded">@menuItem.DisplayName</HtmlLink>
+                        </DropdownTrigger>
+                        <DropdownMenu>
+
+                            @foreach (var menuItem in menuItem.Items.SelectRecursive(x => x.Items).Where(w => !w.IsHidden) ?? [])
+                            {
+                                <DropdownItem @key="menuItem.ElementId" role="presentation"
+                                              Class="block has-[.active]:bg-current/5">
+                                    <HtmlLink Class="rounded w-full"
+                                              Href="@(menuItem.Url)"
+                                              role="menuitem"
+                                              ActiveClass="active "
+                                              tabindex="-1">
+                                        <span class="inline">@menuItem.DisplayName</span>
+
+                                        @if (menuItem.Component.Value != null)
+                                        {
+                                            if (menuItem.Component.IsT0)
+                                            {
+                                                @menuItem.Component.AsT0
+                                            }
+                                            else
+                                            {
+                                                <DynamicComponent Type="@menuItem.Component.AsT1" Parameters="@menuItem.CustomData" />
+                                            }
+                                        }
+                                    </HtmlLink>
+                                </DropdownItem>
+                            }
+
+                        </DropdownMenu>
+                    </Dropdown>
+                }
+            }
+
+            <SwitchThemeMode />
 
         </nav>
     </header>
     <main class="flex min-h-0 flex-1 flex-col overflow-hidden">@Body</main>
 </div>
+
+@code {
+    [Inject] IMenuManager MenuManager { get; set; } = null!;
+    [Inject] ILandlordService LandlordService { get; set; } = null!;
+
+    private ApplicationMenu? MainMenu { get; set; }
+
+    (int LandlordCount, int PropertyCount, decimal PropertyAmount) Info;
+
+    protected override async Task OnInitializedAsync()
+    {
+        MainMenu = await MenuManager.GetMainMenuAsync(TokenSource.Token);
+
+        Info = await LandlordService.GetInfoAsync(ct: TokenSource.Token);
+
+        await base.OnInitializedAsync();
+    }
+
+}

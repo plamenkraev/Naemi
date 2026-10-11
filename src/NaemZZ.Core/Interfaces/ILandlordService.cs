@@ -11,6 +11,7 @@ public interface ILandlordService
     Task UpdateAsync(LandlordDto dto, CancellationToken ct = default);
     Task DeleteAsync(int id, CancellationToken ct = default);
     Task<Landlord?> GetForContractAsync(int id, CancellationToken ct = default);
+    Task<(int LandlordCount, int PropertyCount, decimal PropertyAmount)> GetInfoAsync(int? companyId = null, CancellationToken ct = default);
 }
 
 public sealed class SaveResult

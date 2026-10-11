@@ -18,7 +18,7 @@ public static class BulgarianValidation
     {
         var errors = new Dictionary<string, string>();
 
-        if (!string.IsNullOrWhiteSpace(n.NAME) && n.NAME == "[нов]")
+       /* if (!string.IsNullOrWhiteSpace(n.NAME) && n.NAME == "[нов]")
         {
             errors["NAME"] = "Въведете име.";
         }
@@ -36,7 +36,7 @@ public static class BulgarianValidation
         if (!string.IsNullOrWhiteSpace(n.STREET) && !StreetRegex.IsMatch(n.STREET))
         {
             errors["STREET"] = "Позволени символи - А-Я,1-9, място и точка.";
-        }
+        }*/
 
         if (!string.IsNullOrWhiteSpace(n.EGN) && !DigitsOnlyRegex.IsMatch(n.EGN))
         {
@@ -48,10 +48,10 @@ public static class BulgarianValidation
             errors["LK"] = "Позволени символи - 1-9.";
         }
 
-        if (!string.IsNullOrWhiteSpace(n.MVR) && !CyrillicNameRegex.IsMatch(n.MVR))
+       /* if (!string.IsNullOrWhiteSpace(n.MVR) && !CyrillicNameRegex.IsMatch(n.MVR))
         {
             errors["MVR"] = "Позволени символи - А-Я, място и точка.";
-        }
+        }*/
 
         return errors;
     }

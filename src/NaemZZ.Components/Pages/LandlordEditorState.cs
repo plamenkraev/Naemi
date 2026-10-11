@@ -33,10 +33,22 @@ public sealed class LandlordEditorState
 
     public void Record(string label)
     {
-        if (Current is null) return;
+        if (Current is null)
+        {
+            return;
+        }
+
         var json = Snapshot(Current);
-        if (_index >= 0 && _history[_index].Json == json) return;
-        if (_index < _history.Count - 1) _history.RemoveRange(_index + 1, _history.Count - _index - 1);
+        if (_index >= 0 && _history[_index].Json == json)
+        {
+            return;
+        }
+
+        if (_index < _history.Count - 1)
+        {
+            _history.RemoveRange(_index + 1, _history.Count - _index - 1);
+        }
+
         _history.Add((label, json));
         _index = _history.Count - 1;
     }
@@ -44,14 +56,22 @@ public sealed class LandlordEditorState
     public LandlordDto? Undo()
     {
         Record("Редакция");
-        if (!CanUndo) return Current;
+        if (!CanUndo)
+        {
+            return Current;
+        }
+
         Current = Restore(_history[--_index].Json);
         return Current;
     }
 
     public LandlordDto? Redo()
     {
-        if (!CanRedo) return Current;
+        if (!CanRedo)
+        {
+            return Current;
+        }
+
         Current = Restore(_history[++_index].Json);
         return Current;
     }
@@ -59,7 +79,11 @@ public sealed class LandlordEditorState
     public LandlordDto? JumpTo(int index)
     {
         Record("Редакция");
-        if (index < 0 || index >= _history.Count) return Current;
+        if (index < 0 || index >= _history.Count)
+        {
+            return Current;
+        }
+
         _index = index;
         Current = Restore(_history[index].Json);
         return Current;
@@ -67,14 +91,22 @@ public sealed class LandlordEditorState
 
     public void MarkSaved()
     {
-        if (Current is null) return;
+        if (Current is null)
+        {
+            return;
+        }
+
         Record("Запис");
         _saved = Snapshot(Current);
     }
 
     public LandlordDto? Discard()
     {
-        if (_saved is null) return null;
+        if (_saved is null)
+        {
+            return null;
+        }
+
         Current = Restore(_saved);
         Record("Отказани промени");
         return Current;

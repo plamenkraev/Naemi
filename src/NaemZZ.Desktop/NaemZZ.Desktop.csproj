@@ -14,6 +14,7 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <UseWPF>true</UseWPF>
+	 <ApplicationIcon>Assets\brovis.ico</ApplicationIcon>
   </PropertyGroup>
 
   <ItemGroup>
@@ -24,12 +25,12 @@
 
   <ItemGroup>
     <PackageReference Include="LumexUI" Version="2.4.0" />
-    <PackageReference Include="Microsoft.AspNetCore.Components.WebView.Wpf" Version="10.0.1" />
+    <PackageReference Include="Microsoft.AspNetCore.Components.WebView.Wpf" Version="10.0.110" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="10.0.12">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="Microsoft.Extensions.Hosting" Version="10.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Hosting" Version="10.0.12" />
     <PackageReference Include="R3Extensions.WPF" Version="1.3.1" />
   </ItemGroup>
 
@@ -42,7 +43,23 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None Remove="Assets\brovis.ico" />
+    <None Remove="Assets\brovis_16x16.ico" />
+    <None Remove="Assets\brovis_256x256.ico" />
+    <None Remove="Assets\brovis_32x32.ico" />
+    <None Remove="Assets\brovis_48x48.ico" />
+  </ItemGroup>
+
+  <ItemGroup>
     <None Include="compilerconfig.json" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Resource Include="Assets\brovis.ico" />
+    <Resource Include="Assets\brovis_16x16.ico" />
+    <Resource Include="Assets\brovis_256x256.ico" />
+    <Resource Include="Assets\brovis_32x32.ico" />
+    <Resource Include="Assets\brovis_48x48.ico" />
   </ItemGroup>
 
   <!-- ───────── Tailwind CSS v4 build pipeline (no Node.js required) ─────────
