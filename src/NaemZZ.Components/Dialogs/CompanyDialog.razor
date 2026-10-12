@@ -47,6 +47,16 @@
                         <TextField Placeholder="МОЛ" @bind-Value="Company.Representative" />
                     </FieldBody>
                 </Field>
+
+                <Field>
+                    <FieldLabel>
+                        @L["Цена на декар"]
+                    </FieldLabel>
+                    <FieldBody>
+                        <NumericEdit TValue="decimal?"  Placeholder="Цена на декар" Size="ThemeSize.Small" Step="0.001m"
+                                    @bind-Value="Company.Price"/>
+                    </FieldBody>
+                </Field>
                 <Field>
                     <FieldLabel>
                         @L["Шаблон на договор"]

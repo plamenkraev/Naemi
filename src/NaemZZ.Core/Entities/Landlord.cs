@@ -13,18 +13,13 @@ public class Landlord
     public string? CompanyName { get; set; }
     public string? EIK { get; set; }
     public string? MOL { get; set; }
-
     public string? NAME { get; set; } = "[нов]";
-
     public string? SURNAME { get; set; }
-
     public string? LASTNAME { get; set; }
 
     /// <summary>FK to <see cref="Entities.Settlement"/> (settlement / Населено място).</summary>
     public int? CITY { get; set; }
-
     public string? STREET { get; set; }
-
     public string? EGN { get; set; }
 
     /// <summary>ID card ("лична карта") number.</summary>
@@ -44,21 +39,17 @@ public class Landlord
 
     /// <summary>FK to <see cref="Region"/> (Област / region).</summary>
     public int? OBLAST { get; set; }
-
     public string? Phone { get; set; }
+    public string? Email { get; set; }
+    public decimal? Price { get; set; }
 
     /// <summary>Optional contract template override; null uses the selected company template.</summary>
     public int? ContractTemplateId { get; set; }
     public ContractTemplate? ContractTemplate { get; set; }
-
     public Company? Company { get; set; }
-
     public Region? Region { get; set; }
-
     public Municipality? Municipality { get; set; }
-
     public Settlement? Settlement { get; set; }
-
     public ICollection<Property> IMOTIs { get; set; } = new List<Property>();
 
     /// <summary>Total area (дка) of all properties belonging to this landlord. Mirrors legacy "GetTotal".</summary>

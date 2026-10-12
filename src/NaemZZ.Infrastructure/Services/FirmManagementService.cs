@@ -8,7 +8,8 @@ using NaemZZ.Infrastructure.Data;
 namespace NaemZZ.Infrastructure.Services;
 public sealed class FirmManagementService(IDbContextFactory<NaemZZDbContext> factory, ILookupService lookups, IMapper mapper) : IFirmManagementService
 {
-    public async Task<IReadOnlyList<FirmDto>> ListAsync(CancellationToken ct = default)
+    public async Task<IReadOnlyList<FirmDto>> ListAsync(
+    CancellationToken ct = default)
     {
         await using var db = await factory.CreateDbContextAsync(ct);
 
@@ -24,9 +25,17 @@ public sealed class FirmManagementService(IDbContextFactory<NaemZZDbContext> fac
             .Select(g => new
             {
                 CompanyId = g.Key,
+
                 LandlordCount = g.Count(),
+
                 PropertyCount = g.Sum(x => x.IMOTIs.Count),
-                PropertyAmount = g.Sum(x => x.IMOTIs.Sum(p => p.PLOST))
+
+                PropertyAmount = g.Sum(x =>
+                    x.IMOTIs.Sum(p => p.PLOST ?? 0m)),
+
+                TotalPrice = g.Sum(x =>
+                    x.IMOTIs.Sum(p => p.PLOST ?? 0m) *
+                    (x.Price ?? x.Company!.Price ?? 0m))
             })
             .ToDictionaryAsync(x => x.CompanyId, ct);
 
@@ -38,7 +47,8 @@ public sealed class FirmManagementService(IDbContextFactory<NaemZZDbContext> fac
             {
                 firm.LandlordCount = info.LandlordCount;
                 firm.PropertyCount = info.PropertyCount;
-                firm.PropertyAmount = info.PropertyAmount.GetValueOrDefault();
+                firm.PropertyAmount = info.PropertyAmount;
+                firm.TotalPrice = info.TotalPrice;
             }
         }
 

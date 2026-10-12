@@ -23,6 +23,8 @@ public class Company
 
     public string? RepresentativeIdCardIssuer { get; set; }
 
+    public decimal? Price { get; set; }
+
     public int? ContractTemplateId { get; set; }
 
     public ContractTemplate? ContractTemplate { get; set; }

@@ -208,27 +208,39 @@
     </div>
 
     <script>
-                 window.appSplash = {
-             startedAt: Date.now(),
+                window.appSplash = {
+                    startedAt: Date.now(),
 
-             hide: async function () {
-                 const elapsed = Date.now() - this.startedAt;
-                 const remaining = Math.max(0, 3000 - elapsed);
+                    hide: async function () {
+                        const elapsed = Date.now() - this.startedAt;
+                        const remaining = Math.max(0, 3000 - elapsed);
 
-                 if (remaining > 0) {
-                     await new Promise(resolve => setTimeout(resolve, remaining));
-                 }
+                        if (remaining > 0) {
+                            await new Promise(resolve => setTimeout(resolve, remaining));
+                        }
 
-                 const splash = document.getElementById("app-splash");
+                        const splash = document.getElementById("app-splash");
 
-                 if (splash) {
-                     splash.classList.add("hidden");
+                        if (splash) {
+                            splash.classList.add("hidden");
 
-                     setTimeout(() => splash.remove(), 350);
-                 }
-             }
-         };
+                            setTimeout(() => splash.remove(), 350);
+                        }
+                    }
+                };
     </script>
     <script src="_framework/blazor.webview.js"></script>
+
+    <script>
+            (async () => {
+                while (typeof window.initializeTjtHybrid !== "function") {
+                    await new Promise(resolve => setTimeout(resolve, 20));
+                }
+
+                await window.initializeTjtHybrid();
+
+                console.log("TJT Hybrid initialized");
+            })().catch(console.error);
+    </script>
 </body>
 </html>

@@ -19,7 +19,7 @@ public static partial class ContractTemplateRenderer
     public static string Render(string html, FirmDto? firm, Landlord landlord, DateTime? date = null)
     {
         var today = date ?? DateTime.Today;
-        var bg = CultureInfo.GetCultureInfo("bg-BG");
+        var bg = CultureInfo.GetCultureInfo("en-US");
         var fields = new Dictionary<string, string?>(StringComparer.OrdinalIgnoreCase)
         {
             ["Firm.Name"] = firm?.Name,
@@ -36,11 +36,14 @@ public static partial class ContractTemplateRenderer
             ["Landlord.EGN"] = landlord.EGN,
             ["Landlord.Address"] = FormatLandlordAddress(landlord),
             ["Landlord.Phone"] = landlord.Phone,
+            ["Landlord.Email"] = landlord.Email,
             ["Landlord.IDCard"] = landlord.LK,
             ["Landlord.IDCardDate"] = landlord.LKDATE?.ToString("dd.MM.yyyy", bg),
             ["Landlord.Issuer"] = landlord.MVR,
             ["Contract.Date"] = today.ToString("dd.MM.yyyy", bg),
-            ["Contract.Year"] = today.Year.ToString(CultureInfo.InvariantCulture)
+            ["Contract.Year"] = today.Year.ToString(CultureInfo.InvariantCulture),
+            ["Contract.Price"] = (firm?.Price ?? landlord.Price)?.ToString("N2", bg),
+            ["Contract.Total"] = (landlord.IMOTIs.Sum(i => i.PLOST.GetValueOrDefault()) * (firm?.Price ?? landlord.Price))?.ToString("N2", bg),
         };
 
         string FormatLandlordAddress(Landlord landlord)

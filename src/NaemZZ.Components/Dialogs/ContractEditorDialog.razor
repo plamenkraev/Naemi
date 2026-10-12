@@ -21,95 +21,111 @@
     }
 </Style>
 
-<Dialog>
+<Dialog ContentClass="bg-surface-muted text-surafce-foreground">
+    <TitleContent>
+        <div class="flex flex-wrap items-center justify-between gap-2 mr-10">
+            <div>
+                <h2 class="font-semibold">@(_editingTemplate ? "Редакция на шаблон" : "Печат")</h2>
+            </div>
+            <div class="flex flex-wrap gap-2">
+                @if (!_editingTemplate)
+                {
+                    <Button Size="ThemeSize.Small"
+                            Variant="Variant.Flat"
+                            OnClick="@EditTemplateAsync">
+                        Редакция на шаблон
+                    </Button>
+
+                    <Button Size="ThemeSize.Small"
+                            Color="PaletteColor.Primary"
+                            OnClick="@PrintAsync">
+                        Печат
+                    </Button>
+                }
+                else
+                {
+                    <Button Size="ThemeSize.Small" Variant="Variant.Flat" OnClick="@BackToContractAsync">Назад</Button>
+                    <Button Size="ThemeSize.Small" Color="PaletteColor.Primary"
+                            IsBusy="@SaveCommand.IsDisabled"
+                            OnClick="@SaveCommand.InvokeAsync">
+                        Запази шаблона
+                    </Button>
+                }
+                @* <Button Size="ThemeSize.Small" Variant="Variant.Flat" OnClick="@(DialogReference.CancelAsync)">Затвори</Button> *@
+            </div>
+        </div>
+    </TitleContent>
     <ChildContent>
 
-        <PageAlert class="my-2" Key="@this"/>
+        <PageAlert class="my-2" Key="@this" />
 
         <LoadingIndicator Class="flex flex-col gap-3 min-h-0 h-full" Initializing="@(_template is null)" Visible="@(IsLoading.Value)" FadeIn="true">
 
             <div class="flex flex-col gap-3 min-h-0 h-full">
-                <div class="flex flex-wrap items-center justify-between gap-2">
-                    <div>
-                        <h2 class="font-semibold">@(_editingTemplate ? "Редакция на шаблон" : "")</h2>
-                        <p class="text-sm opacity-70">@_template!.Name</p>
-                    </div>
-                    <div class="flex flex-wrap gap-2">
-                        @if (!_editingTemplate)
-                        {
-                            <Button Size="ThemeSize.Small"
-                                    Variant="Variant.Flat"
-                                    OnClick="@EditTemplateAsync">
-                                Редакция на шаблон
-                            </Button>
-
-                            <Button Size="ThemeSize.Small"
-                                    Color="PaletteColor.Primary"
-                                    OnClick="@PrintAsync">
-                                Печат
-                            </Button>
-                        }
-                        else
-                        {
-                            <Button Size="ThemeSize.Small" Variant="Variant.Flat" OnClick="@BackToContractAsync">Назад</Button>
-                            <Button Size="ThemeSize.Small" Color="PaletteColor.Primary"
-                                    IsBusy="@SaveCommand.IsDisabled"
-                                    OnClick="@SaveCommand.InvokeAsync">
-                                Запази шаблона
-                            </Button>
-                        }
-                        <Button Size="ThemeSize.Small" Variant="Variant.Flat" OnClick="@(DialogReference.CancelAsync)">Затвори</Button>
-                    </div>
-                </div>
+               
                 @if (_editingTemplate)
                 {
-                    <div class="text-xs opacity-70">Редактирайте текста директно. За динамични данни използвайте бутоните по-долу. Запазването променя бъдещите договори.</div>
-                     <ExpansionPanels>
-                    <ExpansionPanel DefaultIsExpanded Title="Данни за шаблона">
-                        
-                         <Field>
-                                <FieldLabel>@L["Име на шаблона"]</FieldLabel>
-                                <FieldBody><TextField Placeholder="Име на шаблона" @bind-Value="_templateName" /></FieldBody>
-                           </Field>
+                    <ExpansionPanels>
+                        <ExpansionPanel DefaultIsExpanded Title="Данни за шаблона">
+                            <HeaderTemplate>
+                                <div class="flex flex-wrap gap-3 bg-surface text-surface-foreground items-end rounded-lg">
+                                    <div class="flex-1 min-w-56">
+                                        <Field>
+                                            <FieldLabel>
+                                                @L["Име на шаблона"]
+                                                <small class="text-xxs text-current/60">
+                                                    ( Редактирайте текста директно. За динамични данни използвайте бутоните по-долу. Запазването променя бъдещите договори.)
+                                                </small>
+                                            </FieldLabel>
 
-                         <fieldset class="rounded-lg border border-current-border p-4">
-                                <legend class="px-2 text-sm font-semibold">
-                                   Вмъкни поле за фирмата:
-                                </legend>
-
-                                <div class="divide-current-border divide-y flex flex-wrap gap-2">
-                                  @foreach (var field in TemplateFields)
-                                    {
-                                        <Button Size="ThemeSize.ExtraSmall" Variant="Variant.Flat"
-                                                OnClick="@(() => _editor?.InsertContent(field.Token))">
-                                            @field.Label
-                                        </Button>
-                                    }
+                                            <FieldBody>
+                                                <TextField Size="@ThemeSize.Small" Placeholder="Име на шаблона" @bind-Value="_templateName" />
+                                            </FieldBody>
+                                        </Field>
+                                    </div>
                                 </div>
-                            </fieldset>
+                            </HeaderTemplate>
+                            <ChildContent>                              
 
-                             <fieldset class="rounded-lg border border-current-border p-4">
-                                <legend class="px-2 text-sm font-semibold">
-                                   Вмъкни поле за наемодателя:
-                                </legend>
+                                <fieldset class="rounded-lg border border-current-border p-2">
+                                    <legend class="px-2 text-xs font-semibold">
+                                        Вмъкни поле за фирмата:
+                                    </legend>
 
-                                <div class="divide-current-border divide-y flex flex-wrap gap-2">
-                                  @foreach (var field in LandlordTemplateFields)
-                                    {
-                                        <Button Size="ThemeSize.ExtraSmall" Variant="Variant.Flat"
-                                                OnClick="@(() => _editor?.InsertContent(field.Token))">
-                                            @field.Label
-                                        </Button>
-                                    }
-                                </div>
-                            </fieldset>
-                            
-                    </ExpansionPanel>
+                                    <div class="divide-current-border divide-y flex flex-wrap gap-2">
+                                        @foreach (var field in TemplateFields)
+                                        {
+                                            <Button Size="ThemeSize.ExtraSmall" Variant="Variant.Flat"
+                                                    OnClick="@(() => _editor?.InsertContent(field.Token))">
+                                                @field.Label
+                                            </Button>
+                                        }
+                                    </div>
+                                </fieldset>
+
+                                <fieldset class="rounded-lg border border-current-border p-2">
+                                    <legend class="px-2 text-xs font-semibold">
+                                        Вмъкни поле за наемодателя:
+                                    </legend>
+
+                                    <div class="divide-current-border divide-y flex flex-wrap gap-2">
+                                        @foreach (var field in LandlordTemplateFields)
+                                        {
+                                            <Button Size="ThemeSize.ExtraSmall" Variant="Variant.Flat"
+                                                    OnClick="@(() => _editor?.InsertContent(field.Token))">
+                                                @field.Label
+                                            </Button>
+                                        }
+                                    </div>
+                                </fieldset>
+                            </ChildContent>                         
+
+                        </ExpansionPanel>
                     </ExpansionPanels>
-                   
+
                 }
 
-                <div class="min-h-[420px] h-full rounded-lg border border-divider bg-white text-black p-4">
+                <div class="min-h-[420px] h-full rounded-lg border border-vurrent-border bg-surface text-surface-foreground p-4">
                     <TinyMceEditor @key="_editorKey"
                                    @ref="_editor"
                                    @bind-Value="EditorHtml"
@@ -138,6 +154,8 @@
         ("Представител", "{{Firm.Representative}}") ,
         ("Днешна Дата", "{{Contract.Date}}"),
         ("Текуща Година", "{{Contract.Year}}"),
+        ("Цена на декар", "{{Contract.Price}}"),
+        ("Обща стойност", "{{Contract.Total}}"),
     ];
 
     private static readonly (string Label, string Token)[] LandlordTemplateFields =
@@ -150,9 +168,10 @@
         ("ЕГН", "{{Landlord.EGN}}"),
         ("Адрес", "{{Landlord.Address}}"),
         ("Телефон", "{{Landlord.Phone}}"),
+        ("Email", "{{Landlord.Email}}"),
         ("Л.К. номер", "{{Landlord.IDCard}}"),
         ("Л.К. дата", "{{Landlord.IDCardDate}}"),
-        ("МВР", "{{Landlord.Issuer}}"),       
+        ("МВР", "{{Landlord.Issuer}}"),
         ("Списък с имоти", "{{Properties.List}}")
    ];
     private void InsertField(string token) => _editor?.InsertContent(token);
@@ -170,7 +189,7 @@
     public ContractEditorDialog()
     {
         SaveCommand = new AsyncReactiveCommand().WithSubscribe(SaveTemplateAsync).DisposeWith(this);
-        
+
     }
     // TinyMceEditor exposes Value/ValueChanged, not GetHtmlAsync/SetHtmlAsync.
     // Keep the two editing buffers separate so template changes don't overwrite a contract.
@@ -249,24 +268,26 @@
             _templateHtml = _template.Html;
             _contractHtml = doc.Html;
         }
-        catch (Exception ex) 
-        { 
-           await AlertErrorAsync(ex, key: this);
+        catch (Exception ex)
+        {
+            await AlertErrorAsync(ex, key: this);
         }
     }
 
-    private Task EditTemplateAsync()
+    private async Task EditTemplateAsync()
     {
         _editingTemplate = true;
         _editorKey++; // Recreate TinyMCE with the template's HTML.
-        return Task.CompletedTask;
+
+        await DialogReference.SetOptionsAsync(DialogReference.Options);       
     }
 
-    private Task BackToContractAsync()
+    private async Task BackToContractAsync()
     {
         _editingTemplate = false;
         _editorKey++; // Recreate TinyMCE with the individual contract's HTML.
-        return Task.CompletedTask;
+
+        await DialogReference.SetOptionsAsync(DialogReference.Options);
     }
 
     private async Task SaveTemplateAsync()
@@ -295,6 +316,8 @@
 
             _editingTemplate = false;
             _editorKey++;
+
+            await DialogReference.SetOptionsAsync(DialogReference.Options);
         }
         catch (Exception ex)
         {

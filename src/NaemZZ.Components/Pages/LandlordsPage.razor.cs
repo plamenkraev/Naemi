@@ -22,7 +22,6 @@ public partial class LandlordsPage : BaseDomComponent
     [Inject] private IFirmManagementService FirmManagement { get; set; } = null!;
     [Inject] private IServiceScopeFactory ScopeFactory { get; set; } = null!;
     [Inject] private ILookupService Lookups { get; set; } = null!;
-
     private readonly Dictionary<int, IReadOnlyList<Municipality>> _municipalities = [];
     private readonly Dictionary<int, IReadOnlyList<Settlement>> _settlements = [];
     private IReadOnlyList<PropertyCategory> _categories = [];
@@ -151,7 +150,15 @@ public partial class LandlordsPage : BaseDomComponent
             await Select(_landlords[0]);
         }
     }
+    private void CompanyChanged()
+    {
+        if (_current is not null)
+        {
+            var firm = _firms.FirstOrDefault(x => x.Id == _current.FIRM_ID);
 
+            _current.DefaultPrice = firm?.Price;
+        }
+    }
     private async Task PrepareCurrentLocationsAsync()
     {
         if (_current is null)

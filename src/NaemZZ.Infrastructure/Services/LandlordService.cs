@@ -12,7 +12,7 @@ namespace NaemZZ.Infrastructure.Services;
 /// <summary>Stateless persistence. No selected record, dirty flags or deletion queues.</summary>
 public sealed class LandlordService(IDbContextFactory<NaemZZDbContext> factory, IMapper mapper) : ILandlordService
 {
-    public async Task<IReadOnlyList<LandlordListDto>> GetListAsync( string? searchText = null, CancellationToken ct = default)
+    public async Task<IReadOnlyList<LandlordListDto>> GetListAsync(string? searchText = null, CancellationToken ct = default)
     {
         await using var db = await factory.CreateDbContextAsync(ct);
 
@@ -56,31 +56,49 @@ public sealed class LandlordService(IDbContextFactory<NaemZZDbContext> factory, 
         return landlords;
     }
 
-    public async Task<(int LandlordCount, int PropertyCount, decimal PropertyAmount)> GetInfoAsync(int? companyId = null, CancellationToken ct = default)
+    public async Task<(int LandlordCount, int PropertyCount, decimal PropertyAmount, decimal TotalPrice)> GetInfoAsync(int? companyId = null, CancellationToken ct = default)
     {
         await using var db = await factory.CreateDbContextAsync(ct);
-        
-        var entity = await db.Landlords.AsNoTracking()
-            .Include(x => x.IMOTIs).AsSplitQuery()
-            .WhereIIf(companyId.HasValue, x=> x.FIRM_ID == companyId)
+
+        var entity = await db.Landlords
+            .AsNoTracking()
+            .WhereIIf(companyId.HasValue, x => x.FIRM_ID == companyId)
             .GroupBy(x => 1)
-            .Select(g => new 
-            { 
+            .Select(g => new
+            {
                 LandlordCount = g.Count(),
+
                 PropertyCount = g.Sum(x => x.IMOTIs.Count),
-                PropertyAmount = g.Sum(x => x.IMOTIs.Sum(s=> s.PLOST)),
+
+                PropertyAmount = g.Sum(x =>
+                    x.IMOTIs.Sum(p => p.PLOST ?? 0m)),
+
+                TotalPrice = g.Sum(x =>
+                    x.IMOTIs.Sum(p => p.PLOST ?? 0m) *
+                    (x.Price ?? x.Company!.Price ?? 0m))
             })
             .SingleOrDefaultAsync(ct);
 
-        return entity is null ? (0, 0, 0) : (entity.LandlordCount, entity.PropertyCount, entity.PropertyAmount.GetValueOrDefault());
+        return entity is null
+            ? (0, 0, 0m, 0m)
+            : (
+                entity.LandlordCount,
+                entity.PropertyCount,
+                entity.PropertyAmount,
+                entity.TotalPrice
+            );
     }
 
     public async Task<LandlordDto?> GetAsync(int id, CancellationToken ct = default)
     {
         await using var db = await factory.CreateDbContextAsync(ct);
+
         var entity = await db.Landlords.AsNoTracking()
-            .Include(x => x.IMOTIs).AsSplitQuery()
+            .AsSplitQuery()
+            .Include(x => x.Company)
+            .Include(x => x.IMOTIs)
             .SingleOrDefaultAsync(x => x.ID == id, ct);
+
         return entity is null ? null : mapper.Map<LandlordDto>(entity);
     }
 
@@ -106,16 +124,25 @@ public sealed class LandlordService(IDbContextFactory<NaemZZDbContext> factory, 
     {
         if (BulgarianValidation.ValidateLandlord(mapper.Map<Landlord>(dto)).Count != 0 ||
             dto.IMOTIs.Any(p => BulgarianValidation.ValidateProperty(mapper.Map<Property>(p)).Count != 0))
+        {
             throw new ArgumentException("Невалидни данни за наемодател или имот.");
+        }
     }
 
     public async Task<LandlordDto> CreateAsync(LandlordDto dto, CancellationToken ct = default)
     {
-        if (dto.ID != 0) throw new ArgumentException("Expected a new landlord.", nameof(dto));
+        if (dto.ID != 0)
+        {
+            throw new ArgumentException("Expected a new landlord.", nameof(dto));
+        }
+
         Validate(dto, mapper);
         await using var db = await factory.CreateDbContextAsync(ct);
         if (dto.ContractTemplateId is int templateId && !await db.ContractTemplates.AnyAsync(x => x.Id == templateId, ct))
+        {
             throw new ArgumentException("Невалиден шаблон за договор.");
+        }
+
         var entity = mapper.Map<Landlord>(dto);
         db.Landlords.Add(entity);
         var created = new List<Property>();
@@ -140,12 +167,19 @@ public sealed class LandlordService(IDbContextFactory<NaemZZDbContext> factory, 
 
     public async Task UpdateAsync(LandlordDto dto, CancellationToken ct = default)
     {
-        if (dto.ID <= 0) throw new ArgumentException("Expected an existing landlord.", nameof(dto));
+        if (dto.ID <= 0)
+        {
+            throw new ArgumentException("Expected an existing landlord.", nameof(dto));
+        }
+
         Validate(dto, mapper);
         await using var db = await factory.CreateDbContextAsync(ct);
         await using var transaction = await db.Database.BeginTransactionAsync(ct);
         if (dto.ContractTemplateId is int templateId && !await db.ContractTemplates.AnyAsync(x => x.Id == templateId, ct))
+        {
             throw new ArgumentException("Невалиден шаблон за договор.");
+        }
+
         var entity = await db.Landlords.SingleAsync(x => x.ID == dto.ID, ct);
         mapper.Map(dto, entity);
         var stored = await db.Properties.Where(x => x.LandlordId == dto.ID).ToListAsync(ct);
@@ -165,7 +199,10 @@ public sealed class LandlordService(IDbContextFactory<NaemZZDbContext> factory, 
             else
             {
                 if (!byId.TryGetValue(property.Id, out var child))
+                {
                     throw new InvalidOperationException("Property does not belong to the selected landlord.");
+                }
+
                 mapper.Map(property, child);
             }
         }
@@ -180,13 +217,21 @@ public sealed class LandlordService(IDbContextFactory<NaemZZDbContext> factory, 
 
     public async Task DeleteAsync(int id, CancellationToken ct = default)
     {
-        if (id <= 0) return;
+        if (id <= 0)
+        {
+            return;
+        }
+
         await using var db = await factory.CreateDbContextAsync(ct);
         await using var transaction = await db.Database.BeginTransactionAsync(ct);
         var children = await db.Properties.Where(x => x.LandlordId == id).ToListAsync(ct);
         db.Properties.RemoveRange(children);
         var entity = await db.Landlords.SingleOrDefaultAsync(x => x.ID == id, ct);
-        if (entity is not null) db.Landlords.Remove(entity);
+        if (entity is not null)
+        {
+            db.Landlords.Remove(entity);
+        }
+
         await db.SaveChangesAsync(ct);
         await transaction.CommitAsync(ct);
     }

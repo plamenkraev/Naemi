@@ -41,6 +41,9 @@ namespace NaemZZ.Infrastructure.Migrations
                         .HasColumnType("TEXT")
                         .HasColumnName("firmNAME");
 
+                    b.Property<decimal?>("Price")
+                        .HasColumnType("TEXT");
+
                     b.Property<string>("Representative")
                         .HasMaxLength(50)
                         .HasColumnType("TEXT")
@@ -120,6 +123,9 @@ namespace NaemZZ.Infrastructure.Migrations
                         .HasMaxLength(13)
                         .HasColumnType("TEXT");
 
+                    b.Property<string>("Email")
+                        .HasColumnType("TEXT");
+
                     b.Property<int?>("FIRM_ID")
                         .HasColumnType("INTEGER");
 
@@ -157,6 +163,9 @@ namespace NaemZZ.Infrastructure.Migrations
 
                     b.Property<string>("Phone")
                         .HasMaxLength(20)
+                        .HasColumnType("TEXT");
+
+                    b.Property<decimal?>("Price")
                         .HasColumnType("TEXT");
 
                     b.Property<string>("STREET")

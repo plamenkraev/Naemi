@@ -2,8 +2,9 @@
 @using System.Extensions
 @using System.Extensions.Collections.Generic
 @using Blazicons
-@using Tjt.Grid.Blazor
 @using NaemZZ.Core.Dto
+@using Tjt.Grid.Blazor
+@using Tjt.Models
 @inherits BaseDomComponent
 
 <div class="flex h-full min-h-0">
@@ -86,15 +87,14 @@
                 </Button>
 
             </div>
-
+            @if (HasUnsavedChanges)
+            {
+                <span class="text-xs text-warning">● Незапазени промени</span>
+            }
             <div class="ml-auto">
                 <Button Size="ThemeSize.Small" Variant="Variant.Flat" OnClick="@Undo" IsEnabled="@(_current is not null && (_editor.CanUndo || HasUnsavedChanges))">↶ Отмени</Button>
                 <Button Size="ThemeSize.Small" Variant="Variant.Flat" OnClick="@Redo" IsEnabled="@_editor.CanRedo">↷ Повтори</Button>
                 <Button Size="ThemeSize.Small" Variant="Variant.Flat" OnClick="@(() => _showHistory = !_showHistory)">История</Button>
-                @if (HasUnsavedChanges)
-                {
-                    <span class="text-xs text-warning">● Незапазени промени</span>
-                }
             </div>
 
         </div>
@@ -127,73 +127,115 @@
         {
             <ExpansionPanels>
                 <ExpansionPanel DefaultIsExpanded Title="@($"Данни за наемодател {_current.GetFullName()}")">
+                    <HeaderTemplate>
+                        <div class="flex gap-4 items-center justify-between">
+                            @($"Данни за наемодател {_current.GetFullName()}")
 
-                    <section class="rounded-lg border border-current-border bg-surface text-surface-foreground p-3">
-
-                        <div class="grid grid-cols-1 gap-3 lg:grid-cols-2">
-                            <div class="flex flex-col gap-2">
-                                <TextField Placeholder="ID" Value="@_current.ID.ToString()" IsEnabled="false"
-                                           Size="ThemeSize.Small" />
-
-                                <Field>
-                                    <FieldBody>
-                                        <Select Placeholder="Фирма" Size="ThemeSize.Small" @bind-Value="_current.FIRM_ID"
-                                                Items="@_firms" ValueField="@(x => x.Id)" TextField="@(x => x.Name)" />
-                                    </FieldBody>
-                                </Field>
-
-                                <Field>
-                                    <FieldBody>
-                                        <Select Placeholder="Шаблон за договор (по подразбиране от фирмата)"
-                                                Size="ThemeSize.Small" @bind-Value="_current.ContractTemplateId"
-                                                Items="@_contractTemplates" ValueField="@(x => x.Id)" TextField="@(x => x.Name)" />
-                                    </FieldBody>
-                                </Field>
-
-                                <SwitchGroup>
-                                    <Switch Size="@ThemeSize.Small" @bind-Value="_current.IsCompany" />
-                                    <SwitchLabel>Юридическо лице (фирма)</SwitchLabel>
-                                </SwitchGroup>
-
-                                @if (_current.IsCompany)
-                                {
-                                    <TextField Placeholder="Наименование на фирмата" Size="ThemeSize.Small" @bind-Value="_current.CompanyName" ErrorMessage="@LandlordError("CompanyName")" />
-                                    <TextField Placeholder="ЕИК / БУЛСТАТ" Size="ThemeSize.Small" @bind-Value="_current.EIK" ErrorMessage="@LandlordError("EIK")" />
-                                    <TextField Placeholder="МОЛ / Представляващ" Size="ThemeSize.Small" @bind-Value="_current.MOL" />
-                                }
-                                else
-                                {
-                                    <TextField Placeholder="Име" Size="ThemeSize.Small" @bind-Value="_current.NAME" ErrorMessage="@LandlordError("NAME")" />
-                                    <TextField Placeholder="Презиме" Size="ThemeSize.Small" @bind-Value="_current.SURNAME" ErrorMessage="@LandlordError("SURNAME")" />
-                                    <TextField Placeholder="Фамилия" Size="ThemeSize.Small" @bind-Value="_current.LASTNAME" ErrorMessage="@LandlordError("LASTNAME")" />
-                                }
-                            </div>
-                            <div class="flex flex-col gap-2">
-                                <TextField Placeholder="Улица" Size="ThemeSize.Small" @bind-Value="_current.STREET" ErrorMessage="@LandlordError("STREET")" />
-                                @if (!_current.IsCompany)
-                                {
-                                    <TextField Placeholder="ЕГН" Size="ThemeSize.Small" @bind-Value="_current.EGN" ErrorMessage="@LandlordError("EGN")" />
-                                    <div class="flex gap-2">
-                                        <TextField Placeholder="ЛК №" Size="ThemeSize.Small" @bind-Value="_current.LK" ErrorMessage="@LandlordError("LK")" />
-                                        <DateInput Placeholder="Дата" Size="ThemeSize.Small" DateFormat="dd.MM.yyyy" @bind-Value="_current.LKDATE" />
-                                    </div>
-                                    <TextField Placeholder="МВР" Size="ThemeSize.Small" @bind-Value="_current.MVR" ErrorMessage="@LandlordError("MVR")" />
-                                }
-                                <TextField Placeholder="Телефон" Size="ThemeSize.Small" @bind-Value="_current.Phone" />
-
-                                <LocationCascadeSelect @key="_current"
-                                                       RegionId="@_current.OBLAST"
-                                                       RegionIdChanged="@(v => _current.OBLAST = v)"
-                                                       MunicipalityId="@_current.OBSTINA"
-                                                       MunicipalityIdChanged="@(v => _current.OBSTINA = v)"
-                                                       SettlementId="@_current.CITY"
-                                                       SettlementIdChanged="@(v => _current.CITY = v)" />
-                            </div>
+                            <Field Orientation="@Orientation.Horizontal" @onclick:stopPropagation>
+                                <FieldLabel>
+                                    @L["Цена на декар"] 
+                                   
+                                    <small class="ml-1 text-xxs text-current/60">
+                                        @(_current.Price is null ? "(от фирмата)" : "(индивидуална)")
+                                    </small>
+                                   
+                                </FieldLabel>
+                                <FieldBody>
+                                    <NumberField TValue="decimal?"
+                                                 Placeholder="Цена на декар"
+                                                 Size="ThemeSize.Small"
+                                                 Step="1"                                                
+                                                 Value="(_current.Price ?? _current.DefaultPrice)"
+                                                 ValueChanged="@(x=> _current.Price = x)" >
+                                            <FieldHelp>
+                                           
+                                        </FieldHelp>
+                                    </NumberField>
+                                </FieldBody>
+                            </Field>
                         </div>
-                    </section>
+                        
+                    </HeaderTemplate>
+                    <ChildContent>
+                        <section class="rounded-lg border border-current-border bg-surface text-surface-foreground p-3">
+
+                            <div class="grid grid-cols-1 gap-3 lg:grid-cols-2">
+                                <div class="flex flex-col gap-2">
+
+                                    <Field>
+                                        <FieldBody>
+                                            <Select Placeholder="Фирма"
+                                                    Size="ThemeSize.Small"
+                                                    @bind-Value="_current.FIRM_ID"
+                                                    Items="@_firms"
+                                                    TValue="int?"
+                                                    TItem="Company"
+                                                    ValueField="@(x => x.Id)"
+                                                    TextField="@(x => x.Name)"
+                                                    @bind-Value:after="@(CompanyChanged)" />
+                                        </FieldBody>
+                                    </Field>
+
+                                    <Field>
+                                        <FieldBody>
+                                            <Select Placeholder="Шаблон за договор (по подразбиране от фирмата)"
+                                                    Size="ThemeSize.Small" @bind-Value="_current.ContractTemplateId"
+                                                    Items="@_contractTemplates" ValueField="@(x => x.Id)" TextField="@(x => x.Name)" />
+                                        </FieldBody>
+                                    </Field>
+
+                                    <SwitchGroup>
+                                        <Switch Size="@ThemeSize.Small" @bind-Value="_current.IsCompany" />
+                                        <SwitchLabel>Юридическо лице (фирма)</SwitchLabel>
+                                    </SwitchGroup>
+
+                                    @if (_current.IsCompany)
+                                    {
+                                        <TextField Placeholder="Наименование на фирмата" Size="ThemeSize.Small" @bind-Value="_current.CompanyName" ErrorMessage="@LandlordError("CompanyName")" />
+                                        <TextField Placeholder="ЕИК / БУЛСТАТ" Size="ThemeSize.Small" @bind-Value="_current.EIK" ErrorMessage="@LandlordError("EIK")" />
+                                        <TextField Placeholder="МОЛ / Представляващ" Size="ThemeSize.Small" @bind-Value="_current.MOL" />
+                                    }
+                                    else
+                                    {
+                                        <TextField Placeholder="Име" Size="ThemeSize.Small" @bind-Value="_current.NAME" ErrorMessage="@LandlordError("NAME")" />
+                                        <TextField Placeholder="Презиме" Size="ThemeSize.Small" @bind-Value="_current.SURNAME" ErrorMessage="@LandlordError("SURNAME")" />
+                                        <TextField Placeholder="Фамилия" Size="ThemeSize.Small" @bind-Value="_current.LASTNAME" ErrorMessage="@LandlordError("LASTNAME")" />
+                                    }
+                                </div>
+                                <div class="flex flex-col gap-2">
+                                    <TextField Placeholder="Улица" Size="ThemeSize.Small" @bind-Value="_current.STREET" ErrorMessage="@LandlordError("STREET")" />
+                                    @if (!_current.IsCompany)
+                                    {
+                                        <TextField Placeholder="ЕГН" Size="ThemeSize.Small" @bind-Value="_current.EGN" ErrorMessage="@LandlordError("EGN")" />
+                                        <div class="flex gap-2">
+                                            <TextField Placeholder="ЛК №" Size="ThemeSize.Small" @bind-Value="_current.LK" ErrorMessage="@LandlordError("LK")" />
+                                            <DateInput Placeholder="Дата" Size="ThemeSize.Small" DateFormat="dd.MM.yyyy" @bind-Value="_current.LKDATE" />
+                                        </div>
+                                        <TextField Placeholder="МВР" Size="ThemeSize.Small" @bind-Value="_current.MVR" ErrorMessage="@LandlordError("MVR")" />
+                                    }
+
+                                    <div class="flex gap-1 ">
+                                        <TextField Placeholder="Телефон" Size="ThemeSize.Small" @bind-Value="_current.Phone" />
+
+                                        <TextField Placeholder="Email" Size="ThemeSize.Small" @bind-Value="_current.Email" />
+                                    </div>
+
+                                    <LocationCascadeSelect @key="_current"
+                                                           RegionId="@_current.OBLAST"
+                                                           RegionIdChanged="@(v => _current.OBLAST = v)"
+                                                           MunicipalityId="@_current.OBSTINA"
+                                                           MunicipalityIdChanged="@(v => _current.OBSTINA = v)"
+                                                           SettlementId="@_current.CITY"
+                                                           SettlementIdChanged="@(v => _current.CITY = v)" />
+
+                                </div>
+                            </div>
+                        </section>
+                    </ChildContent>
+
                 </ExpansionPanel>
             </ExpansionPanels>
-          
+
             <section class="flex min-h-0 flex-col gap-2 rounded-lg border border-current-border bg-surface text-surface-foreground p-3">
                 <div class="flex flex-wrap items-center justify-between gap-2">
                     <div class="flex items-center gap-2">
@@ -208,7 +250,7 @@
                             <Button Size="ThemeSize.Small" Variant="Variant.Flat" OnClick="@AddProperty">Добави</Button>
                         }
                     </div>
-                    <span class="text-sm font-medium">Общо: @(_current.GetTotal.ToString("N3")) дка</span>
+                    <span class="text-sm font-medium">Общо: @(_current.GetTotalArea.ToString("N3")) дка (@PriceFactory.New("EUR").Create(_current.GetTotalArea * (_current.Price ?? _current.DefaultPrice).GetValueOrDefault()))</span>
                 </div>
                 <div class="min-w-0 min-h-0 h-full">
                     <HtmlGrid TGridItem="PropertyDto"

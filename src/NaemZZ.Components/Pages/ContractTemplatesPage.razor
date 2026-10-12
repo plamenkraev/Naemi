@@ -55,28 +55,34 @@
         <div class="flex flex-col flex-1 min-w-0 min-h-0">
             <LoadingIndicator Class="h-full flex flex-col gap-1" Initializing="@(_name is null)" Visible="@(IsLoading.Value)" FadeIn="true">
                 <ExpansionPanels>
-                    <ExpansionPanel DefaultIsExpanded Title="Данни за шаблона">
-                        <div class="flex flex-wrap gap-3 bg-surface text-surface-foreground items-end rounded-lg">
-                            <div class="flex-1 min-w-56">
-                                <Field>
-                                    <FieldLabel>@L["Име на шаблона"]</FieldLabel>
-                                    <FieldBody><TextField Placeholder="Име на шаблона" @bind-Value="_name" /></FieldBody>
-                                </Field>
+                    <ExpansionPanel DefaultIsExpanded>
+                        <HeaderTemplate>
+                            <div class="flex flex-wrap gap-3 bg-surface text-surface-foreground items-end rounded-lg">
+                                <div class="flex-1 min-w-56">
+                                    <Field>
+                                        <FieldLabel>
+                                            @L["Име на шаблона"]
+                                            <small class="text-xxs text-current/60">
+                                                (Шаблоните се записват отделно. Изберете кой шаблон използва всяка фирма от
+                                                „Фирми“.)
+                                            </small>
+                                        </FieldLabel>
+
+                                        <FieldBody>
+                                            <TextField Size="@ThemeSize.Small" Placeholder="Име на шаблона" @bind-Value="_name" />
+                                        </FieldBody>
+                                    </Field>
+                                </div>
                             </div>
-                        </div>
-
-                        <p class="text-xs opacity-70">
-                            Шаблоните се записват отделно. Изберете кой шаблон използва всяка фирма от
-                            „Фирми“.
-                        </p>
-
-                         <fieldset class="rounded-lg border border-current-border p-4">
-                                <legend class="px-2 text-sm font-semibold">
-                                   Вмъкни поле за фирмата:
+                        </HeaderTemplate>
+                        <ChildContent>
+                            <fieldset class="rounded-lg border border-current-border p-2">
+                                <legend class="px-2 text-xs font-semibold">
+                                    Вмъкни поле за фирмата:
                                 </legend>
 
                                 <div class="divide-current-border divide-y flex flex-wrap gap-2">
-                                  @foreach (var field in TemplateFields)
+                                    @foreach (var field in TemplateFields)
                                     {
                                         <Button Size="ThemeSize.ExtraSmall" Variant="Variant.Flat"
                                                 OnClick="@(() => _editor?.InsertContent(field.Token))">
@@ -86,13 +92,13 @@
                                 </div>
                             </fieldset>
 
-                             <fieldset class="rounded-lg border border-current-border p-4">
-                                <legend class="px-2 text-sm font-semibold">
-                                   Вмъкни поле за наемодателя:
+                            <fieldset class="rounded-lg border border-current-border p-2">
+                                <legend class="px-2 text-xs font-semibold">
+                                    Вмъкни поле за наемодателя:
                                 </legend>
 
                                 <div class="divide-current-border divide-y flex flex-wrap gap-2">
-                                  @foreach (var field in LandlordTemplateFields)
+                                    @foreach (var field in LandlordTemplateFields)
                                     {
                                         <Button Size="ThemeSize.ExtraSmall" Variant="Variant.Flat"
                                                 OnClick="@(() => _editor?.InsertContent(field.Token))">
@@ -101,6 +107,7 @@
                                     }
                                 </div>
                             </fieldset>
+                        </ChildContent>
                     </ExpansionPanel>
                 </ExpansionPanels>
 
@@ -134,13 +141,15 @@
     }
 
     private static readonly (string Label, string Token)[] TemplateFields =
-    [
-        ("Име на фирма", "{{Firm.Name}}"),
+     [
+         ("Име на фирма", "{{Firm.Name}}"),
         ("Адрес на фирма", "{{Firm.Address}}"),
         ("ЕИК / БУЛСТАТ", "{{Firm.EIK}}"),
         ("Представител", "{{Firm.Representative}}") ,
         ("Днешна Дата", "{{Contract.Date}}"),
         ("Текуща Година", "{{Contract.Year}}"),
+        ("Цена на декар", "{{Contract.Price}}"),
+        ("Обща стойност", "{{Contract.Total}}"),
     ];
 
     private static readonly (string Label, string Token)[] LandlordTemplateFields =
@@ -153,6 +162,7 @@
         ("ЕГН", "{{Landlord.EGN}}"),
         ("Адрес", "{{Landlord.Address}}"),
         ("Телефон", "{{Landlord.Phone}}"),
+        ("Email", "{{Landlord.Email}}"),
         ("Л.К. номер", "{{Landlord.IDCard}}"),
         ("Л.К. дата", "{{Landlord.IDCardDate}}"),
         ("МВР", "{{Landlord.Issuer}}"),

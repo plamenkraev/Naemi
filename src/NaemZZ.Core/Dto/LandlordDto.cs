@@ -13,6 +13,7 @@ public sealed class LandlordListDto
     public string? CompanyName { get; set; }
     public string? EIK { get; set; }
     public string? MOL { get; set; }
+    public string? Email { get; set; }
 }
 
 public sealed class LandlordDto
@@ -20,6 +21,7 @@ public sealed class LandlordDto
     public int ID { get; set; }
     public bool IsCompany { get; set; }
     public string? CompanyName { get; set; }
+    public decimal? DefaultPrice { get; set; }
     public string? EIK { get; set; }
     public string? MOL { get; set; }
     public string? NAME { get; set; } = "[нов]";
@@ -36,9 +38,10 @@ public sealed class LandlordDto
     public int? OBSTINA { get; set; }
     public int? OBLAST { get; set; }
     public string? Phone { get; set; }
+    public string? Email { get; set; }
+    public decimal? Price { get; set; }
     public List<PropertyDto> IMOTIs { get; set; } = [];
-    public decimal GetTotal => IMOTIs.Sum(x => x.PLOST ?? 0m);
-
+    public decimal GetTotalArea => IMOTIs.Sum(x => x.PLOST ?? 0m);
     public string? GetFullName()
     {
         if (IsCompany)
@@ -78,8 +81,9 @@ public sealed class FirmDto
     public DateTime? RepresentativeIdCardDate { get; set; }
     public string? RepresentativeIdCardIssuer { get; set; }
     public int? ContractTemplateId { get; set; }
-
+    public decimal? Price { get; set; }
     public int LandlordCount { get; set; }
     public int PropertyCount { get; set; }
     public decimal PropertyAmount { get; set; }
+    public decimal TotalPrice { get; set; }
 }
