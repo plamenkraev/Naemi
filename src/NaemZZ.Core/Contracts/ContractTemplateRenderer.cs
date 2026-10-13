@@ -44,6 +44,7 @@ public static partial class ContractTemplateRenderer
             ["Contract.Year"] = today.Year.ToString(CultureInfo.InvariantCulture),
             ["Contract.Price"] = (firm?.Price ?? landlord.Price)?.ToString("N2", bg),
             ["Contract.Total"] = (landlord.IMOTIs.Sum(i => i.PLOST.GetValueOrDefault()) * (firm?.Price ?? landlord.Price))?.ToString("N2", bg),
+            ["Contract.TotalArea"] = landlord.IMOTIs.Sum(i => i.PLOST.GetValueOrDefault()).ToString("N3", bg),
         };
 
         string FormatLandlordAddress(Landlord landlord)
