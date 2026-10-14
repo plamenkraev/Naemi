@@ -44,8 +44,8 @@ public partial class App : Application
 
         // Bulgarian locale by default, without mutating shared NumberFormatInfo process-wide;
         // call sites that need the legacy "dd/MM/yyyy" date format apply it explicitly.
-        CultureInfo.DefaultThreadCurrentCulture = new CultureInfo("bg-BG");
-        CultureInfo.DefaultThreadCurrentUICulture = new CultureInfo("bg-BG");
+        CultureInfo.DefaultThreadCurrentCulture = new CultureInfo("en-US");
+        CultureInfo.DefaultThreadCurrentUICulture = new CultureInfo("en-US");
         Thread.CurrentThread.CurrentCulture = CultureInfo.DefaultThreadCurrentCulture;
         Thread.CurrentThread.CurrentUICulture = CultureInfo.DefaultThreadCurrentUICulture;
 

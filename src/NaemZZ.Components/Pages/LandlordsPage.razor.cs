@@ -150,6 +150,7 @@ public partial class LandlordsPage : BaseDomComponent
             await Select(_landlords[0]);
         }
     }
+
     private void CompanyChanged()
     {
         if (_current is not null)
@@ -159,6 +160,7 @@ public partial class LandlordsPage : BaseDomComponent
             _current.DefaultPrice = firm?.Price;
         }
     }
+
     private async Task PrepareCurrentLocationsAsync()
     {
         if (_current is null)
@@ -576,9 +578,17 @@ public partial class LandlordsPage : BaseDomComponent
                 return;
             }
 
-            if (contractLandlord.FIRM_ID is null)
+            var firm = _firms.FirstOrDefault(x => x.Id == _current.FIRM_ID);
+
+            if (firm is null)
             {
                 await NotificationService.Error("Моля, изберете фирма за наемодателя.");
+                return;
+            }
+
+            if (contractLandlord.ContractTemplateId is null && firm.ContractTemplateId is null)
+            {
+                await NotificationService.Error("Шаблона не е зададен нито във фирмата нито за наемодателя. Моля, изберете шаблон на договор.", options: x=> x.Duration = TimeSpan.FromSeconds(20));
                 return;
             }
 
