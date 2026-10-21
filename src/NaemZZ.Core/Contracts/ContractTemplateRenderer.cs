@@ -42,8 +42,8 @@ public static partial class ContractTemplateRenderer
             ["Landlord.Issuer"] = landlord.MVR,
             ["Contract.Date"] = today.ToString("dd.MM.yyyy", bg),
             ["Contract.Year"] = today.Year.ToString(CultureInfo.InvariantCulture),
-            ["Contract.Price"] = (firm?.Price ?? landlord.Price)?.ToString("N2", bg),
-            ["Contract.Total"] = (landlord.IMOTIs.Sum(i => i.PLOST.GetValueOrDefault()) * (firm?.Price ?? landlord.Price))?.ToString("N2", bg),
+            ["Contract.Price"] = (landlord.Price ?? firm?.Price)?.ToString("N2", bg),
+            ["Contract.Total"] = (landlord.IMOTIs.Sum(i => i.PLOST.GetValueOrDefault()) * (landlord.Price ?? firm?.Price))?.ToString("N2", bg),
             ["Contract.TotalArea"] = landlord.IMOTIs.Sum(i => i.PLOST.GetValueOrDefault()).ToString("N3", bg),
         };
 
